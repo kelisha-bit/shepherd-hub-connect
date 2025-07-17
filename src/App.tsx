@@ -6,6 +6,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { MembersList } from "./components/members/MembersList";
+import { VisitorsList } from "./components/visitors/VisitorsList";
+import { DonationsList } from "./components/donations/DonationsList";
+import { EventsList } from "./components/events/EventsList";
+import { AttendanceList } from "./components/attendance/AttendanceList";
+import { CommunicationsList } from "./components/communications/CommunicationsList";
+import { ReportsList } from "./components/reports/ReportsList";
+import { SettingsPage } from "./components/settings/SettingsPage";
 import { AuthProvider } from "./components/auth/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import Auth from "./pages/Auth";
@@ -47,7 +54,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <div className="p-6 text-center text-muted-foreground">Visitors module coming soon...</div>
+                    <VisitorsList />
                   </AppLayout>
                 </ProtectedRoute>
               } 
@@ -57,7 +64,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <div className="p-6 text-center text-muted-foreground">Donations module coming soon...</div>
+                    <DonationsList />
                   </AppLayout>
                 </ProtectedRoute>
               } 
@@ -67,7 +74,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <div className="p-6 text-center text-muted-foreground">Attendance module coming soon...</div>
+                    <AttendanceList />
                   </AppLayout>
                 </ProtectedRoute>
               } 
@@ -77,7 +84,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <div className="p-6 text-center text-muted-foreground">Events module coming soon...</div>
+                    <EventsList />
                   </AppLayout>
                 </ProtectedRoute>
               } 
@@ -87,7 +94,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <div className="p-6 text-center text-muted-foreground">Communications module coming soon...</div>
+                    <CommunicationsList />
                   </AppLayout>
                 </ProtectedRoute>
               } 
@@ -97,7 +104,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <div className="p-6 text-center text-muted-foreground">Reports module coming soon...</div>
+                    <ReportsList />
                   </AppLayout>
                 </ProtectedRoute>
               } 
@@ -107,7 +114,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <div className="p-6 text-center text-muted-foreground">Settings module coming soon...</div>
+                    <SettingsPage />
                   </AppLayout>
                 </ProtectedRoute>
               } 
