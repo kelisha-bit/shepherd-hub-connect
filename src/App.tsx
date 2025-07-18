@@ -14,9 +14,22 @@ import { CommunicationsList } from "./components/communications/CommunicationsLi
 import { ReportsList } from "./components/reports/ReportsList";
 import { SettingsPage } from "./components/settings/SettingsPage";
 import { AuthProvider } from "./components/auth/AuthContext";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { ProtectedRoute, AdminRoute } from "./components/auth/ProtectedRoute";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import MemberProfile from "./pages/MemberProfile";
+import DonationReceipt from "./pages/DonationReceipt";
+import MemberPortalLayout from "./components/layout/MemberPortalLayout";
+import MemberDashboard from "./pages/MemberDashboard";
+import MemberProfilePage from "./pages/MemberProfilePage";
+import MemberAttendancePage from "./pages/MemberAttendancePage";
+import MemberDonationsPage from "./pages/MemberDonationsPage";
+import MemberEventsPage from "./pages/MemberEventsPage";
+import MemberNotificationsPage from "./pages/MemberNotificationsPage";
+import FinanceIncomePage from './pages/FinanceIncomePage';
+import FinanceExpensePage from './pages/FinanceExpensePage';
+import FinanceGoalsPage from './pages/FinanceGoalsPage';
+import FinanceReportsPage from './pages/FinanceReportsPage';
 
 const queryClient = new QueryClient();
 
@@ -65,6 +78,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AppLayout>
                     <DonationsList />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/donations/receipt/:id" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <DonationReceipt />
                   </AppLayout>
                 </ProtectedRoute>
               } 
@@ -119,6 +142,71 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/finance/income" 
+              element={
+                <AdminRoute>
+                  <AppLayout>
+                    <FinanceIncomePage />
+                  </AppLayout>
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="/finance/expenses" 
+              element={
+                <AdminRoute>
+                  <AppLayout>
+                    <FinanceExpensePage />
+                  </AppLayout>
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="/finance/goals" 
+              element={
+                <AdminRoute>
+                  <AppLayout>
+                    <FinanceGoalsPage />
+                  </AppLayout>
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="/finance/reports" 
+              element={
+                <AdminRoute>
+                  <AppLayout>
+                    <FinanceReportsPage />
+                  </AppLayout>
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="/members/:id" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <MemberProfile />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/member/*" 
+              element={
+                <ProtectedRoute>
+                  <MemberPortalLayout />
+                </ProtectedRoute>
+              } 
+            >
+              <Route index element={<MemberDashboard />} />
+              <Route path="profile" element={<MemberProfilePage />} />
+              <Route path="attendance" element={<MemberAttendancePage />} />
+              <Route path="donations" element={<MemberDonationsPage />} />
+              <Route path="events" element={<MemberEventsPage />} />
+              <Route path="notifications" element={<MemberNotificationsPage />} />
+            </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

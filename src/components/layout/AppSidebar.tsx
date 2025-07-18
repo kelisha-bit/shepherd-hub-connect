@@ -11,6 +11,11 @@ import {
   Home,
   UserCheck,
   Church,
+  User,
+  PiggyBank,
+  TrendingDown,
+  TrendingUp,
+  Target,
 } from "lucide-react";
 
 import {
@@ -25,6 +30,8 @@ import {
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
+
+import { useAuth } from "@/components/auth/AuthContext";
 
 const menuItems = [
   { title: "Dashboard", url: "/", icon: Home },
@@ -41,11 +48,19 @@ const settingsItems = [
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
+const financeItems = [
+  { title: "Income", url: "/finance/income", icon: TrendingUp },
+  { title: "Expenses", url: "/finance/expenses", icon: TrendingDown },
+  { title: "Goals", url: "/finance/goals", icon: Target },
+  { title: "Reports", url: "/finance/reports", icon: BarChart3 },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
   const currentPath = location.pathname;
+  const { user } = useAuth();
 
   const isActive = (path: string) => currentPath === path;
   const getNavClass = ({ isActive }: { isActive: boolean }) =>
@@ -75,6 +90,35 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} end className={getNavClass}>
+                      <item.icon className="h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+            {/* Member Portal Link */}
+            {user && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/member" className={getNavClass}>
+                    <User className="h-4 w-4" />
+                    {!collapsed && <span>Member Portal</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Finance</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {financeItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} end className={getNavClass}>

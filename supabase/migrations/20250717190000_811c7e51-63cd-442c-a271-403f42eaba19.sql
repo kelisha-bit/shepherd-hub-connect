@@ -1,0 +1,2 @@
+-- Add member_id to donations table for member-donor linking
+-- ALTER TABLE public.donations ADD COLUMN member_id UUID REFERENCES members(id) ON DELETE SET NULL; 

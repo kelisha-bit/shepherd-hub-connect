@@ -1,0 +1,1 @@
+-- ALTER TABLE public.donations ADD COLUMN member_id UUID REFERENCES members(id) ON DELETE SET NULL;
