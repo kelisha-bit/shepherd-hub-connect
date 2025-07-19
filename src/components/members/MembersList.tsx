@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { 
   Search, 
   Filter, 
@@ -10,7 +11,12 @@ import {
   MapPin,
   Edit,
   Trash2,
-  Users
+  Users,
+  BarChart2,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Eye
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,18 +42,20 @@ import { useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogAction, AlertDialogCancel, AlertDialogDescription } from "@/components/ui/alert-dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
 import { v4 as uuidv4 } from 'uuid';
 import { Link } from "react-router-dom";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis } from "recharts";
+import { ChartContainer } from "@/components/ui/chart";
 
 export function MembersList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [ministryFilter, setMinistryFilter] = useState("all");
   const [members, setMembers] = useState<any[]>([]);
+  const [memberDonations, setMemberDonations] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -85,6 +93,10 @@ export function MembersList() {
   }, []);
 
   useEffect(() => {
+    fetchMembers();
+  }, []);
+
+  useEffect(() => {
     if (editingMember) {
       editForm.reset(editingMember);
     }
@@ -93,11 +105,62 @@ export function MembersList() {
 
   const fetchMembers = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("members")
-      .select("*");
-    if (!error) setMembers(data || []);
+    try {
+      const { data, error } = await supabase
+        .from("members")
+        .select("*");
+      
+      if (!error) {
+        setMembers(data || []);
+        // Fetch donations for all members
+        await fetchMemberDonations(data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching members:", error);
+      toast({ title: "Error", description: "Failed to fetch members", variant: "destructive" });
+    }
     setLoading(false);
+  };
+
+  const fetchMemberDonations = async (membersList: any[]) => {
+    try {
+      const memberIds = membersList.map(m => m.id);
+      const { data: donationsData, error } = await supabase
+        .from("donations")
+        .select("*")
+        .in("member_id", memberIds);
+
+      if (!error && donationsData) {
+        const donationsByMember = donationsData.reduce((acc, donation) => {
+          if (donation.member_id) {
+            if (!acc[donation.member_id]) {
+              acc[donation.member_id] = [];
+            }
+            acc[donation.member_id].push(donation);
+          }
+          return acc;
+        }, {} as Record<string, any[]>);
+        
+        setMemberDonations(donationsByMember);
+      }
+    } catch (error) {
+      console.error("Error fetching member donations:", error);
+    }
+  };
+
+  const getMemberDonationStats = (memberId: string) => {
+    const donations = memberDonations[memberId] || [];
+    const totalAmount = donations.reduce((sum, d) => sum + Number(d.amount || 0), 0);
+    const recentDonations = donations
+      .sort((a, b) => new Date(b.donation_date).getTime() - new Date(a.donation_date).getTime())
+      .slice(0, 3);
+    
+    return {
+      totalAmount,
+      donationCount: donations.length,
+      recentDonations,
+      hasDonations: donations.length > 0
+    };
   };
 
   const filteredMembers = members.filter(member => {
@@ -208,8 +271,108 @@ export function MembersList() {
     }
   };
 
+  // --- Stats and Demography ---
+  const totalMembers = members.length;
+  const activeMembers = members.filter(m => (m.membership_status || '').toLowerCase() === 'active').length;
+  const inactiveMembers = members.filter(m => (m.membership_status || '').toLowerCase() === 'inactive').length;
+  
+  // Calculate total donations across all members
+  const totalDonations = Object.values(memberDonations).reduce((sum, donations) => 
+    sum + donations.reduce((memberSum, d) => memberSum + Number(d.amount || 0), 0), 0
+  );
+
+  // Gender distribution for chart
+  const genderCounts = members.reduce((acc, m) => {
+    const gender = (m.gender || 'Unknown').toLowerCase();
+    acc[gender] = (acc[gender] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const genderData = Object.entries(genderCounts).map(([gender, count]) => ({ name: gender.charAt(0).toUpperCase() + gender.slice(1), value: count }));
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#A28CF6"];
+
+  // No need for chartData as it's not used in the component
+
+
   return (
     <div className="space-y-6">
+      {/* Stats Cards & Demography Chart */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 mb-6">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-blue-700">Total Members</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold text-blue-900">{totalMembers}</div>
+              <Users className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-green-700">Active Members</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold text-green-900">{activeMembers}</div>
+              <TrendingUp className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-yellow-700">Inactive Members</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold text-yellow-900">{inactiveMembers}</div>
+              <TrendingDown className="h-8 w-8 text-yellow-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-emerald-700">Total Donations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold text-emerald-900">₵{totalDonations.toLocaleString()}</div>
+              <DollarSign className="h-8 w-8 text-emerald-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-purple-700">Gender Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div style={{ width: "100%", height: 120 }}>
+              <ResponsiveContainer width="100%" height={120}>
+                <PieChart>
+                  <Pie
+                    data={genderData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={40}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {genderData.map((entry, idx) => (
+                      <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -351,7 +514,7 @@ export function MembersList() {
       {/* Filters */}
       <Card className="shadow-md">
         <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col gap-4 md:flex-row md:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -388,19 +551,20 @@ export function MembersList() {
         </CardContent>
       </Card>
       {/* Members Grid */}
-      <div className="bg-muted/40 rounded-xl p-4">
+      <div className="bg-muted/40 rounded-xl p-2 sm:p-4">
         {loading ? (
           <div className="p-6 text-center text-muted-foreground">Loading members...</div>
         ) : filteredMembers.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredMembers.map((member) => (
-              <Link key={member.id} to={`/members/${member.id}`} className="block group">
-                <Card className="shadow-md hover:shadow-xl transition-shadow border border-border/70 bg-background/90 cursor-pointer">
-                  <CardHeader className="pb-2 flex flex-col items-center relative">
+          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredMembers.map((member) => {
+              const donationStats = getMemberDonationStats(member.id);
+              return (
+                <Card key={member.id} className="group hover:shadow-xl transition-all duration-300 border border-border/70 bg-background/90 overflow-hidden">
+                  <CardHeader className="pb-3 flex flex-col items-center relative bg-gradient-to-br from-slate-50 to-slate-100">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="absolute right-2 top-2">
-                          <MoreHorizontal className="h-5 w-5" />
+                        <Button variant="ghost" size="icon" className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -408,51 +572,127 @@ export function MembersList() {
                         <DropdownMenuItem onClick={() => { setEditingMember(member); setEditOpen(true); }}>
                           <Edit className="mr-2 h-4 w-4" /> Edit
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => { setDetailsMember(member); setDetailsOpen(true); }}>
+                          <Eye className="mr-2 h-4 w-4" /> View Details
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-destructive" onClick={() => { setDeletingMember(member); setDeleteOpen(true); }}>
                           <Trash2 className="mr-2 h-4 w-4" /> Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Avatar className="h-16 w-16 mb-2 shadow-md">
+                    
+                    <Avatar className="h-20 w-20 mb-3 shadow-lg border-4 border-white">
                       <AvatarImage src={member.profile_image_url || ""} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-medium text-xl">
+                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold text-xl">
                         {`${member.first_name?.[0] || ""}${member.last_name?.[0] || ""}`.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <CardTitle className="text-lg font-semibold text-center text-foreground">
+                    
+                    <CardTitle className="text-xl font-bold text-center text-foreground mb-1">
                       {member.first_name} {member.last_name}
                     </CardTitle>
-                    <CardDescription className="text-center text-muted-foreground">
+                    
+                    <CardDescription className="text-center text-muted-foreground mb-3">
                       {member.email || <span className="italic text-xs">No email</span>}
                     </CardDescription>
-                    <div className="flex gap-2 mt-2 flex-wrap justify-center">
-                      <Badge className={getStatusColor(member.membership_status)}>
+                    
+                    <div className="flex gap-2 flex-wrap justify-center">
+                      <Badge className={`${getStatusColor(member.membership_status)} font-medium`}>
                         {member.membership_status || "Unknown"}
                       </Badge>
                       {member.ministry && (
-                        <Badge variant="outline">{member.ministry.replace(/_/g, " ")}</Badge>
+                        <Badge variant="outline" className="font-medium">{member.ministry.replace(/_/g, " ")}</Badge>
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-2 pt-0">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Phone className="h-4 w-4" />
-                      <span>{member.phone_number || <span className="italic">No phone</span>}</span>
+                  
+                  <CardContent className="space-y-4 pt-4">
+                    {/* Contact Information */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Phone className="h-4 w-4 text-blue-500" />
+                        <span className="truncate">{member.phone_number || <span className="italic">No phone</span>}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4 text-green-500" />
+                        <span className="truncate">{member.address || <span className="italic">No address</span>}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4 text-purple-500" />
+                        <span>Joined: {member.membership_date ? new Date(member.membership_date).toLocaleDateString() : <span className="italic">Unknown</span>}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
-                      <span>{member.address || <span className="italic">No address</span>}</span>
+                    
+                    {/* Donation Statistics */}
+                    <div className="border-t pt-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-foreground">Donation Summary</span>
+                        <DollarSign className="h-4 w-4 text-emerald-500" />
+                      </div>
+                      
+                      {donationStats.hasDonations ? (
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-muted-foreground">Total Amount:</span>
+                            <span className="text-sm font-bold text-emerald-600">₵{donationStats.totalAmount.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-muted-foreground">Donations:</span>
+                            <span className="text-sm font-medium text-blue-600">{donationStats.donationCount}</span>
+                          </div>
+                          
+                          {/* Recent Donations */}
+                          {donationStats.recentDonations.length > 0 && (
+                            <div className="mt-2">
+                              <span className="text-xs text-muted-foreground block mb-1">Recent:</span>
+                              <div className="space-y-1">
+                                {donationStats.recentDonations.map((donation, idx) => (
+                                  <div key={idx} className="flex justify-between items-center text-xs">
+                                    <span className="text-muted-foreground">
+                                      {new Date(donation.donation_date).toLocaleDateString()}
+                                    </span>
+                                    <span className="font-medium text-emerald-600">
+                                      ₵{Number(donation.amount).toLocaleString()}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-2">
+                          <span className="text-xs text-muted-foreground italic">No donation records</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      <span>Joined: {member.membership_date ? new Date(member.membership_date).toLocaleDateString() : <span className="italic">Unknown</span>}</span>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 text-xs"
+                        onClick={() => { setDetailsMember(member); setDetailsOpen(true); }}
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        Details
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 text-xs"
+                        onClick={() => { setEditingMember(member); setEditOpen(true); }}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
                     </div>
                   </CardContent>
-                  {/* Actions can be added here as a CardFooter if needed */}
                 </Card>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16">
@@ -469,7 +709,7 @@ export function MembersList() {
       </div>
       {/* Member Details Side Panel */}
       <Sheet open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <SheetContent side="right" className="max-w-md w-full">
+        <SheetContent side="right" className="w-full max-w-full sm:max-w-md">
           {detailsMember && (
             <>
               <SheetHeader>
@@ -492,29 +732,134 @@ export function MembersList() {
                   </div>
                 </div>
               </SheetHeader>
-              <div className="space-y-4 mt-4">
-                <div className="flex items-center gap-2 text-base text-muted-foreground">
-                  <Phone className="h-5 w-5" />
-                  <span>{detailsMember.phone_number || <span className="italic">No phone</span>}</span>
+              <div className="space-y-6 mt-4">
+                {/* Contact Information */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-foreground">Contact Information</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-base text-muted-foreground">
+                      <Phone className="h-5 w-5 text-blue-500" />
+                      <span>{detailsMember.phone_number || <span className="italic">No phone</span>}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-base text-muted-foreground">
+                      <Mail className="h-5 w-5 text-green-500" />
+                      <span>{detailsMember.email || <span className="italic">No email</span>}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-base text-muted-foreground">
+                      <MapPin className="h-5 w-5 text-purple-500" />
+                      <span>{detailsMember.address || <span className="italic">No address</span>}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-base text-muted-foreground">
+                      <Calendar className="h-5 w-5 text-orange-500" />
+                      <span>Joined: {detailsMember.membership_date ? new Date(detailsMember.membership_date).toLocaleDateString() : <span className="italic">Unknown</span>}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-base text-muted-foreground">
-                  <MapPin className="h-5 w-5" />
-                  <span>{detailsMember.address || <span className="italic">No address</span>}</span>
+
+                {/* Donation Information */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-foreground">Donation History</h3>
+                  {(() => {
+                    const donationStats = getMemberDonationStats(detailsMember.id);
+                    return (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          <Card className="bg-emerald-50 border-emerald-200">
+                            <CardContent className="p-3">
+                              <div className="text-center">
+                                <div className="text-2xl font-bold text-emerald-700">₵{donationStats.totalAmount.toLocaleString()}</div>
+                                <div className="text-xs text-emerald-600">Total Donations</div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                          <Card className="bg-blue-50 border-blue-200">
+                            <CardContent className="p-3">
+                              <div className="text-center">
+                                <div className="text-2xl font-bold text-blue-700">{donationStats.donationCount}</div>
+                                <div className="text-xs text-blue-600">Donation Count</div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+                        
+                        {donationStats.hasDonations ? (
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-medium text-foreground">Recent Donations</h4>
+                            <div className="space-y-2 max-h-40 overflow-y-auto">
+                              {donationStats.recentDonations.map((donation, idx) => (
+                                <Card key={idx} className="bg-muted/30">
+                                  <CardContent className="p-3">
+                                    <div className="flex justify-between items-center">
+                                      <div>
+                                        <div className="font-medium text-foreground">₵{Number(donation.amount).toLocaleString()}</div>
+                                        <div className="text-xs text-muted-foreground">{donation.donation_type || 'General'}</div>
+                                      </div>
+                                      <div className="text-right">
+                                        <div className="text-xs text-muted-foreground">
+                                          {new Date(donation.donation_date).toLocaleDateString()}
+                                        </div>
+                                        <Badge variant="outline" className="text-xs">
+                                          {donation.payment_method || 'Unknown'}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-4 text-muted-foreground">
+                            <DollarSign className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                            <p>No donation records found</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
-                <div className="flex items-center gap-2 text-base text-muted-foreground">
-                  <Calendar className="h-5 w-5" />
-                  <span>Joined: {detailsMember.membership_date ? new Date(detailsMember.membership_date).toLocaleDateString() : <span className="italic">Unknown</span>}</span>
-                </div>
-                {/* Add more fields as needed */}
-                <div className="flex flex-col gap-1 text-sm text-muted-foreground mt-4">
-                  <span><b>Department:</b> {detailsMember.department || <span className="italic">-</span>}</span>
-                  <span><b>Role:</b> {detailsMember.role || <span className="italic">-</span>}</span>
-                  <span><b>Marital Status:</b> {detailsMember.marital_status || <span className="italic">-</span>}</span>
-                  <span><b>Gender:</b> {detailsMember.gender || <span className="italic">-</span>}</span>
-                  <span><b>Date of Birth:</b> {detailsMember.date_of_birth ? new Date(detailsMember.date_of_birth).toLocaleDateString() : <span className="italic">-</span>}</span>
-                  <span><b>Member ID:</b> {detailsMember.member_id || <span className="italic">-</span>}</span>
-                  <span><b>Membership Type:</b> {detailsMember.membership_type || <span className="italic">-</span>}</span>
-                  <span><b>Notes:</b> {detailsMember.notes || <span className="italic">-</span>}</span>
+
+                {/* Additional Information */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-foreground">Additional Information</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-muted-foreground">Department:</span>
+                      <div className="text-foreground">{detailsMember.department || <span className="italic">-</span>}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Role:</span>
+                      <div className="text-foreground">{detailsMember.role || <span className="italic">-</span>}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Marital Status:</span>
+                      <div className="text-foreground">{detailsMember.marital_status || <span className="italic">-</span>}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Gender:</span>
+                      <div className="text-foreground">{detailsMember.gender || <span className="italic">-</span>}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Date of Birth:</span>
+                      <div className="text-foreground">
+                        {detailsMember.date_of_birth ? new Date(detailsMember.date_of_birth).toLocaleDateString() : <span className="italic">-</span>}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Member ID:</span>
+                      <div className="text-foreground">{detailsMember.member_id || <span className="italic">-</span>}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Membership Type:</span>
+                      <div className="text-foreground">{detailsMember.membership_type || <span className="italic">-</span>}</div>
+                    </div>
+                  </div>
+                  {detailsMember.notes && (
+                    <div>
+                      <span className="font-medium text-muted-foreground">Notes:</span>
+                      <div className="text-foreground mt-1 p-2 bg-muted rounded-md">{detailsMember.notes}</div>
+                    </div>
+                  )}
                 </div>
               </div>
               <SheetClose asChild>
