@@ -8,8 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Church, Loader } from 'lucide-react';
-// @ts-ignore
-import QRCode from "react-qr-code";
+// Temporarily commenting out QR code to test if it's causing the loading issue
+// import QRCode from "react-qr-code";
 
 export default function Auth() {
   const { user, loading, signIn, signUp } = useAuth();
@@ -194,10 +194,11 @@ export default function Auth() {
             </TabsContent>
           </Tabs>
         </CardContent>
-        <div style={{ marginTop: 32, textAlign: "center" }}>
+        {/* Temporarily commenting out QR code to test if it's causing the loading issue */}
+        {/* <div style={{ marginTop: 32, textAlign: "center" }}>
           <p>Scan this QR code to open the app homepage on your phone:</p>
           <QRCode value="http://localhost:8080/" style={{ height: 180, width: 180 }} />
-        </div>
+        </div> */}
       </Card>
     </div>
   );

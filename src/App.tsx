@@ -30,190 +30,253 @@ import FinanceIncomePage from './pages/FinanceIncomePage';
 import FinanceExpensePage from './pages/FinanceExpensePage';
 import FinanceGoalsPage from './pages/FinanceGoalsPage';
 import FinanceReportsPage from './pages/FinanceReportsPage';
+import { supabase } from "@/integrations/supabase/client";
+import React from "react";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route 
-              path="/" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Dashboard />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/members" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <MembersList />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/visitors" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <VisitorsList />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/donations" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <DonationsList />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/donations/receipt/:id" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <DonationReceipt />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/attendance" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <AttendanceList />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/events" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <EventsList />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/communications" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <CommunicationsList />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/reports" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <ReportsList />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/settings" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <SettingsPage />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/finance/income" 
-              element={
-                <AdminRoute>
-                  <AppLayout>
-                    <FinanceIncomePage />
-                  </AppLayout>
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/finance/expenses" 
-              element={
-                <AdminRoute>
-                  <AppLayout>
-                    <FinanceExpensePage />
-                  </AppLayout>
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/finance/goals" 
-              element={
-                <AdminRoute>
-                  <AppLayout>
-                    <FinanceGoalsPage />
-                  </AppLayout>
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/finance/reports" 
-              element={
-                <AdminRoute>
-                  <AppLayout>
-                    <FinanceReportsPage />
-                  </AppLayout>
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/members/:id" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <MemberProfile />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/member/*" 
-              element={
-                <ProtectedRoute>
-                  <MemberPortalLayout />
-                </ProtectedRoute>
-              } 
-            >
-              <Route index element={<MemberDashboard />} />
-              <Route path="profile" element={<MemberProfilePage />} />
-              <Route path="attendance" element={<MemberAttendancePage />} />
-              <Route path="donations" element={<MemberDonationsPage />} />
-              <Route path="events" element={<MemberEventsPage />} />
-              <Route path="notifications" element={<MemberNotificationsPage />} />
-            </Route>
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+// Simple test component to check if the issue is with routing
+const TestComponent = () => {
+  console.log('TestComponent: Rendering test component');
+  
+  // Test Supabase connection
+  const testSupabase = async () => {
+    try {
+      console.log('TestComponent: Testing Supabase connection...');
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('TestComponent: Supabase connection error:', error);
+      } else {
+        console.log('TestComponent: Supabase connection successful, session:', data.session);
+      }
+
+      // Test database connection
+      console.log('TestComponent: Testing database connection...');
+      const { data: dbData, error: dbError } = await supabase
+        .from('profiles')
+        .select('*')
+        .limit(1);
+      
+      if (dbError) {
+        console.error('TestComponent: Database connection error:', dbError);
+      } else {
+        console.log('TestComponent: Database connection successful, profiles count:', dbData?.length || 0);
+      }
+    } catch (err) {
+      console.error('TestComponent: Exception testing Supabase:', err);
+    }
+  };
+
+  // Test the connection when component mounts
+  React.useEffect(() => {
+    testSupabase();
+  }, []);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold mb-4">Test Component</h1>
+        <p>If you can see this, the basic routing is working.</p>
+        <p className="text-sm text-gray-500 mt-2">Check the browser console for Supabase connection logs.</p>
+        <button 
+          onClick={testSupabase}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Test Connection Again
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const App = () => {
+  console.log('App: Rendering App component');
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Test route to check if routing works */}
+              <Route path="/test" element={<TestComponent />} />
+              
+              <Route path="/auth" element={<Auth />} />
+              <Route 
+                path="/" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Dashboard />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/members" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AppLayout>
+                      <MembersList />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/visitors" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AppLayout>
+                      <VisitorsList />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/donations" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AppLayout>
+                      <DonationsList />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/donations/receipt/:id" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AppLayout>
+                      <DonationReceipt />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/attendance" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AppLayout>
+                      <AttendanceList />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/events" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AppLayout>
+                      <EventsList />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/communications" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AppLayout>
+                      <CommunicationsList />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/reports" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AppLayout>
+                      <ReportsList />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/settings" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AppLayout>
+                      <SettingsPage />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/finance/income" 
+                element={
+                  <AdminRoute>
+                    <AppLayout>
+                      <FinanceIncomePage />
+                    </AppLayout>
+                  </AdminRoute>
+                } 
+              />
+              <Route 
+                path="/finance/expenses" 
+                element={
+                  <AdminRoute>
+                    <AppLayout>
+                      <FinanceExpensePage />
+                    </AppLayout>
+                  </AdminRoute>
+                } 
+              />
+              <Route 
+                path="/finance/goals" 
+                element={
+                  <AdminRoute>
+                    <AppLayout>
+                      <FinanceGoalsPage />
+                    </AppLayout>
+                  </AdminRoute>
+                } 
+              />
+              <Route 
+                path="/finance/reports" 
+                element={
+                  <AdminRoute>
+                    <AppLayout>
+                      <FinanceReportsPage />
+                    </AppLayout>
+                  </AdminRoute>
+                } 
+              />
+              <Route 
+                path="/members/:id" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AppLayout>
+                      <MemberProfile />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/member/*" 
+                element={
+                  <ProtectedRoute requiredRole="member">
+                    <MemberPortalLayout />
+                  </ProtectedRoute>
+                } 
+              >
+                <Route index element={<MemberDashboard />} />
+                <Route path="profile" element={<MemberProfilePage />} />
+                <Route path="attendance" element={<MemberAttendancePage />} />
+                <Route path="donations" element={<MemberDonationsPage />} />
+                <Route path="events" element={<MemberEventsPage />} />
+                <Route path="notifications" element={<MemberNotificationsPage />} />
+              </Route>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

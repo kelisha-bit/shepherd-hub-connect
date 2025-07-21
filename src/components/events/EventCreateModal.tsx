@@ -8,7 +8,7 @@ import { EventCard } from "./EventCard";
 interface EventCreateModalProps {
   open: boolean;
   onClose: () => void;
-  onCreate: (event: any) => void;
+  onCreate: (event: any, imageFile?: File) => void;
 }
 
 const steps = ["Details", "Schedule", "Location", "Preview"];
@@ -25,10 +25,10 @@ export function EventCreateModal({ open, onClose, onCreate }: EventCreateModalPr
     event_type: "",
     max_attendees: "",
     registration_required: false,
-    image_url: "",
     current_attendees: 0,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const handleChange = (e: any) => {
     const { name, value, type, checked } = e.target;
@@ -44,10 +44,9 @@ export function EventCreateModal({ open, onClose, onCreate }: EventCreateModalPr
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setSubmitting(true);
-    // TODO: Connect to Supabase to create event
     setTimeout(() => {
       setSubmitting(false);
-      onCreate({ ...form, id: Date.now().toString() });
+      onCreate({ ...form, id: Date.now().toString() }, imageFile);
       onClose();
       setStep(0);
       setForm({
@@ -60,9 +59,9 @@ export function EventCreateModal({ open, onClose, onCreate }: EventCreateModalPr
         event_type: "",
         max_attendees: "",
         registration_required: false,
-        image_url: "",
         current_attendees: 0,
       });
+      setImageFile(null);
     }, 1200);
   };
 
@@ -127,7 +126,15 @@ export function EventCreateModal({ open, onClose, onCreate }: EventCreateModalPr
                 {step === 2 && (
                   <div className="grid gap-4">
                     <Input name="location" placeholder="Location" value={form.location} onChange={handleChange} className="h-11 text-base rounded-lg" />
-                    <Input name="image_url" placeholder="Image URL (optional)" value={form.image_url} onChange={handleChange} className="h-11 text-base rounded-lg" />
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Event Image (optional)</label>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={e => setImageFile(e.target.files?.[0] || null)}
+                      />
+                      {imageFile && <span className="text-xs text-muted-foreground">{imageFile.name}</span>}
+                    </div>
                   </div>
                 )}
                 {step === 3 && (
@@ -138,6 +145,7 @@ export function EventCreateModal({ open, onClose, onCreate }: EventCreateModalPr
                         id: "preview",
                         current_attendees: 0,
                         max_attendees: form.max_attendees ? Number(form.max_attendees) : undefined,
+                        image_url: imageFile ? URL.createObjectURL(imageFile) : undefined,
                       }} onClick={() => {}} />
                     </div>
                     <div className="text-zinc-600 dark:text-zinc-300 text-center text-base">Preview your event card as it will appear to users.</div>

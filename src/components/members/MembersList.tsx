@@ -46,7 +46,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogAction, AlertDialogCancel, AlertDialogDescription } from "@/components/ui/alert-dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
 import { v4 as uuidv4 } from 'uuid';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
 
@@ -72,11 +72,65 @@ export function MembersList() {
       ministry: "",
       membership_status: "active",
       address: "",
+      alternate_phone_number: "",
+      emergency_contact: "",
+      city: "",
+      state: "",
+      country: "",
+      postal_code: "",
+      home_town: "",
+      date_of_birth: "",
+      gender: "",
+      marital_status: "",
+      occupation: "",
+      education: "",
+      department: "",
+      group: "",
+      membership_type: "",
+      membership_date: "",
+      member_id: "",
+      tithe_number: "",
+      role: "",
+      baptism_status: "",
+      volunteer_preferences_can_lead_group: false,
+      bio: "",
+      notes: "",
     },
   });
 
   const editForm = useForm({
-    defaultValues: useMemo(() => editingMember || {}, [editingMember]),
+    defaultValues: useMemo(() => editingMember || {
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone_number: "",
+      ministry: "",
+      membership_status: "active",
+      address: "",
+      alternate_phone_number: "",
+      emergency_contact: "",
+      city: "",
+      state: "",
+      country: "",
+      postal_code: "",
+      home_town: "",
+      date_of_birth: "",
+      gender: "",
+      marital_status: "",
+      occupation: "",
+      education: "",
+      department: "",
+      group: "",
+      membership_type: "",
+      membership_date: "",
+      member_id: "",
+      tithe_number: "",
+      role: "",
+      baptism_status: "",
+      volunteer_preferences_can_lead_group: false,
+      bio: "",
+      notes: "",
+    }, [editingMember]),
     values: editingMember || {},
     mode: "onChange",
   });
@@ -87,6 +141,7 @@ export function MembersList() {
   const [addPhotoPreview, setAddPhotoPreview] = useState<string | null>(null);
   const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null);
   const [editPhotoPreview, setEditPhotoPreview] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchMembers();
@@ -295,6 +350,10 @@ export function MembersList() {
 
   return (
     <div className="space-y-6">
+      {/* Navigation Button */}
+      <div className="flex justify-between items-center mb-4">
+        <Button variant="outline" onClick={() => navigate("/dashboard")}>Back to Dashboard</Button>
+      </div>
       {/* Stats Cards & Demography Chart */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 mb-6">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -387,126 +446,440 @@ export function MembersList() {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Member</DialogTitle>
-              <DialogDescription>
-                Fill in the details below to add a new member. Upload a profile photo if available.
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="flex flex-col items-center gap-2">
-                  <label htmlFor="add-photo-upload" className="cursor-pointer">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage src={addPhotoPreview || undefined} />
-                      <AvatarFallback>+</AvatarFallback>
-                    </Avatar>
-                  </label>
-                  <input
-                    id="add-photo-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={e => {
-                      const file = e.target.files?.[0] || null;
-                      setAddPhotoFile(file);
-                      setAddPhotoPreview(file ? URL.createObjectURL(file) : null);
-                    }}
-                  />
-                  {addPhotoFile && <span className="text-xs text-muted-foreground">{addPhotoFile.name}</span>}
-                </div>
-                <div className="flex gap-2">
-                  <FormField name="first_name" control={form.control} render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>First Name</FormLabel>
+            <div className="overflow-y-auto max-h-[80vh] pt-2 pb-4">
+              <DialogHeader>
+                <DialogTitle>Add New Member</DialogTitle>
+                <DialogDescription>
+                  Fill in the details below to add a new member. Upload a profile photo if available.
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="flex flex-col items-center gap-2">
+                    <label htmlFor="add-photo-upload" className="cursor-pointer">
+                      <Avatar className="h-16 w-16">
+                        <AvatarImage src={addPhotoPreview || undefined} />
+                        <AvatarFallback>+</AvatarFallback>
+                      </Avatar>
+                    </label>
+                    <input
+                      id="add-photo-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0] || null;
+                        setAddPhotoFile(file);
+                        setAddPhotoPreview(file ? URL.createObjectURL(file) : null);
+                      }}
+                    />
+                    {addPhotoFile && <span className="text-xs text-muted-foreground">{addPhotoFile.name}</span>}
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="first_name" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="First Name" {...field} required />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="last_name" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Last Name" {...field} required />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="email" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="Email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="phone_number" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Phone Number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="alternate_phone_number" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Alternate Phone</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Alternate Phone" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="emergency_contact" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Emergency Contact</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Emergency Contact" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="address" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Address" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="city" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>City</FormLabel>
+                        <FormControl>
+                          <Input placeholder="City" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="state" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>State</FormLabel>
+                        <FormControl>
+                          <Input placeholder="State" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="country" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Country</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Country" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="postal_code" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Postal Code</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Postal Code" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="home_town" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Home Town</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Home Town" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="date_of_birth" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Date of Birth</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="gender" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Gender</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Gender" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="male">Male</SelectItem>
+                              <SelectItem value="female">Female</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="marital_status" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Marital Status</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Marital Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="single">Single</SelectItem>
+                              <SelectItem value="married">Married</SelectItem>
+                              <SelectItem value="divorced">Divorced</SelectItem>
+                              <SelectItem value="widowed">Widowed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="occupation" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Occupation</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Occupation" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="education" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Education</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Education" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="primary">Primary</SelectItem>
+                              <SelectItem value="secondary">Secondary</SelectItem>
+                              <SelectItem value="diploma">Diploma</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="department" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Department</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Department" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="music">Music</SelectItem>
+                              <SelectItem value="usher_cleaner">Usher/Cleaner</SelectItem>
+                              <SelectItem value="media">Media</SelectItem>
+                              <SelectItem value="finance">Finance</SelectItem>
+                              <SelectItem value="welfare">Welfare</SelectItem>
+                              <SelectItem value="sunday_school">Sunday School</SelectItem>
+                              <SelectItem value="account">Account</SelectItem>
+                              <SelectItem value="welfare_committee">Welfare Committee</SelectItem>
+                              <SelectItem value="choir">Choir</SelectItem>
+                              <SelectItem value="cleaners">Cleaners</SelectItem>
+                              <SelectItem value="n_a">N/A</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="ministry" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Ministry</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Ministry" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="men_ministry">Men Ministry</SelectItem>
+                              <SelectItem value="youth_ministry">Youth Ministry</SelectItem>
+                              <SelectItem value="women_ministry">Women Ministry</SelectItem>
+                              <SelectItem value="children_ministry">Children's Ministry</SelectItem>
+                              <SelectItem value="all">All</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="group" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Group</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Group" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="prayer">Prayer</SelectItem>
+                              <SelectItem value="evangelism">Evangelism</SelectItem>
+                              <SelectItem value="follow_up">Follow Up</SelectItem>
+                              <SelectItem value="leaders">Leaders</SelectItem>
+                              <SelectItem value="prayer_tower">Prayer Tower</SelectItem>
+                              <SelectItem value="usher">Usher</SelectItem>
+                              <SelectItem value="youth_ministry">Youth Ministry</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="membership_status" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Status</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="active">Active</SelectItem>
+                              <SelectItem value="inactive">Inactive</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="membership_type" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Membership Type</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Membership Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="full_member">Full Member</SelectItem>
+                              <SelectItem value="friend_of_church">Friend of Church</SelectItem>
+                              <SelectItem value="new_convert">New Convert</SelectItem>
+                              <SelectItem value="visitor">Visitor</SelectItem>
+                              <SelectItem value="others">Others</SelectItem>
+                              <SelectItem value="regular">Regular</SelectItem>
+                              <SelectItem value="leadership">Leadership</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="membership_date" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Membership Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="member_id" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Member ID</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Member ID" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="tithe_number" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Tithe Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Tithe Number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="role" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Role</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Role" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="baptism_status" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Baptism Status</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Baptism Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="baptized">Baptized</SelectItem>
+                              <SelectItem value="not_baptized">Not Baptized</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="volunteer_preferences_can_lead_group" control={form.control} render={({ field }) => (
+                      <FormItem className="flex-1 flex flex-col justify-end">
+                        <FormLabel>Can Lead Group?</FormLabel>
+                        <FormControl>
+                          <input type="checkbox" checked={field.value || false} onChange={e => field.onChange(e.target.checked)} className="h-5 w-5" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <FormField name="bio" control={form.control} render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bio</FormLabel>
                       <FormControl>
-                        <Input placeholder="First Name" {...field} required />
+                        <textarea className="w-full min-h-[60px] rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Short bio..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
-                  <FormField name="last_name" control={form.control} render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Last Name</FormLabel>
+                  <FormField name="notes" control={form.control} render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
                       <FormControl>
-                        <Input placeholder="Last Name" {...field} required />
+                        <textarea className="w-full min-h-[40px] rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Notes..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
-                </div>
-                <FormField name="email" control={form.control} render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="Email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField name="phone_number" control={form.control} render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Phone Number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField name="ministry" control={form.control} render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ministry</FormLabel>
-                    <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Ministry" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="men_ministry">Men Ministry</SelectItem>
-                          <SelectItem value="youth_ministry">Youth Ministry</SelectItem>
-                          <SelectItem value="women_ministry">Women Ministry</SelectItem>
-                          <SelectItem value="children_ministry">Children's Ministry</SelectItem>
-                          <SelectItem value="all">All</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField name="membership_status" control={form.control} render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="inactive">Inactive</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField name="address" control={form.control} render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Address" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <DialogFooter>
-                  <Button type="submit">Add Member</Button>
-                  <DialogClose asChild>
-                    <Button type="button" variant="outline">Cancel</Button>
-                  </DialogClose>
-                </DialogFooter>
-              </form>
-            </Form>
+                  <DialogFooter>
+                    <Button type="submit">Add Member</Button>
+                    <DialogClose asChild>
+                      <Button type="button" variant="outline">Cancel</Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
@@ -589,9 +962,9 @@ export function MembersList() {
                       </AvatarFallback>
                     </Avatar>
                     
-                    <CardTitle className="text-xl font-bold text-center text-foreground mb-1">
+                    <Link to={`/members/${member.id}`} className="font-bold text-lg text-primary hover:underline">
                       {member.first_name} {member.last_name}
-                    </CardTitle>
+                    </Link>
                     
                     <CardDescription className="text-center text-muted-foreground mb-3">
                       {member.email || <span className="italic text-xs">No email</span>}
@@ -712,154 +1085,187 @@ export function MembersList() {
         <SheetContent side="right" className="w-full max-w-full sm:max-w-md">
           {detailsMember && (
             <>
-              <SheetHeader>
-                <div className="flex flex-col items-center gap-2 mb-2">
-                  <Avatar className="h-20 w-20 shadow-md">
-                    <AvatarImage src={detailsMember.profile_image_url || ""} />
-                    <AvatarFallback className="bg-primary/10 text-primary font-medium text-2xl">
-                      {`${detailsMember.first_name?.[0] || ""}${detailsMember.last_name?.[0] || ""}`.toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <SheetTitle className="text-2xl font-bold text-center">{detailsMember.first_name} {detailsMember.last_name}</SheetTitle>
-                  <SheetDescription className="text-center text-muted-foreground">{detailsMember.email || <span className="italic text-xs">No email</span>}</SheetDescription>
-                  <div className="flex gap-2 mt-2 flex-wrap justify-center">
-                    <Badge className={getStatusColor(detailsMember.membership_status)}>
-                      {detailsMember.membership_status || "Unknown"}
-                    </Badge>
-                    {detailsMember.ministry && (
-                      <Badge variant="outline">{detailsMember.ministry.replace(/_/g, " ")}</Badge>
+              {/* Print Button */}
+              <div className="flex justify-end mb-2">
+                <Button variant="outline" size="sm" onClick={() => {
+                  const printContents = document.getElementById('print-section')?.innerHTML;
+                  if (!printContents) return;
+                  const printWindow = window.open('', '', 'height=800,width=1000');
+                  if (!printWindow) return;
+                  printWindow.document.write(`
+                    <html>
+                      <head>
+                        <title>Print Profile</title>
+                        <style>
+                          @media print {
+                            body { margin: 0; padding: 0; }
+                          }
+                          body { font-family: inherit; background: #fff; color: #000; }
+                          .no-print { display: none !important; }
+                        </style>
+                      </head>
+                      <body>
+                        <div>${printContents}</div>
+                      </body>
+                    </html>
+                  `);
+                  printWindow.document.close();
+                  printWindow.focus();
+                  printWindow.print();
+                  printWindow.close();
+                }}>Print Profile</Button>
+              </div>
+              {/* Printable Section */}
+              <div id="print-section">
+                <SheetHeader>
+                  <div className="flex flex-col items-center gap-2 mb-2">
+                    <Avatar className="h-20 w-20 shadow-md">
+                      <AvatarImage src={detailsMember.profile_image_url || ""} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-medium text-2xl">
+                        {`${detailsMember.first_name?.[0] || ""}${detailsMember.last_name?.[0] || ""}`.toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <SheetTitle className="text-2xl font-bold text-center">{detailsMember.first_name} {detailsMember.last_name}</SheetTitle>
+                    <SheetDescription className="text-center text-muted-foreground">{detailsMember.email || <span className="italic text-xs">No email</span>}</SheetDescription>
+                    <div className="flex gap-2 mt-2 flex-wrap justify-center">
+                      <Badge className={getStatusColor(detailsMember.membership_status)}>
+                        {detailsMember.membership_status || "Unknown"}
+                      </Badge>
+                      {detailsMember.ministry && (
+                        <Badge variant="outline">{detailsMember.ministry.replace(/_/g, " ")}</Badge>
+                      )}
+                    </div>
+                  </div>
+                </SheetHeader>
+                <div className="space-y-6 mt-4">
+                  {/* Contact Information */}
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold text-foreground">Contact Information</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3 text-base text-muted-foreground">
+                        <Phone className="h-5 w-5 text-blue-500" />
+                        <span>{detailsMember.phone_number || <span className="italic">No phone</span>}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-base text-muted-foreground">
+                        <Mail className="h-5 w-5 text-green-500" />
+                        <span>{detailsMember.email || <span className="italic">No email</span>}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-base text-muted-foreground">
+                        <MapPin className="h-5 w-5 text-purple-500" />
+                        <span>{detailsMember.address || <span className="italic">No address</span>}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-base text-muted-foreground">
+                        <Calendar className="h-5 w-5 text-orange-500" />
+                        <span>Joined: {detailsMember.membership_date ? new Date(detailsMember.membership_date).toLocaleDateString() : <span className="italic">Unknown</span>}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Donation Information */}
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold text-foreground">Donation History</h3>
+                    {(() => {
+                      const donationStats = getMemberDonationStats(detailsMember.id);
+                      return (
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-4">
+                            <Card className="bg-emerald-50 border-emerald-200">
+                              <CardContent className="p-3">
+                                <div className="text-center">
+                                  <div className="text-2xl font-bold text-emerald-700">₵{donationStats.totalAmount.toLocaleString()}</div>
+                                  <div className="text-xs text-emerald-600">Total Donations</div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                            <Card className="bg-blue-50 border-blue-200">
+                              <CardContent className="p-3">
+                                <div className="text-center">
+                                  <div className="text-2xl font-bold text-blue-700">{donationStats.donationCount}</div>
+                                  <div className="text-xs text-blue-600">Donation Count</div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </div>
+                          
+                          {donationStats.hasDonations ? (
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-medium text-foreground">Recent Donations</h4>
+                              <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {donationStats.recentDonations.map((donation, idx) => (
+                                  <Card key={idx} className="bg-muted/30">
+                                    <CardContent className="p-3">
+                                      <div className="flex justify-between items-center">
+                                        <div>
+                                          <div className="font-medium text-foreground">₵{Number(donation.amount).toLocaleString()}</div>
+                                          <div className="text-xs text-muted-foreground">{donation.donation_type || 'General'}</div>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="text-xs text-muted-foreground">
+                                            {new Date(donation.donation_date).toLocaleDateString()}
+                                          </div>
+                                          <Badge variant="outline" className="text-xs">
+                                            {donation.payment_method || 'Unknown'}
+                                          </Badge>
+                                        </div>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-4 text-muted-foreground">
+                              <DollarSign className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                              <p>No donation records found</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Additional Information */}
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold text-foreground">Additional Information</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-muted-foreground">Department:</span>
+                        <div className="text-foreground">{detailsMember.department || <span className="italic">-</span>}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-muted-foreground">Role:</span>
+                        <div className="text-foreground">{detailsMember.role || <span className="italic">-</span>}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-muted-foreground">Marital Status:</span>
+                        <div className="text-foreground">{detailsMember.marital_status || <span className="italic">-</span>}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-muted-foreground">Gender:</span>
+                        <div className="text-foreground">{detailsMember.gender || <span className="italic">-</span>}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-muted-foreground">Date of Birth:</span>
+                        <div className="text-foreground">
+                          {detailsMember.date_of_birth ? new Date(detailsMember.date_of_birth).toLocaleDateString() : <span className="italic">-</span>}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-muted-foreground">Member ID:</span>
+                        <div className="text-foreground">{detailsMember.member_id || <span className="italic">-</span>}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-muted-foreground">Membership Type:</span>
+                        <div className="text-foreground">{detailsMember.membership_type || <span className="italic">-</span>}</div>
+                      </div>
+                    </div>
+                    {detailsMember.notes && (
+                      <div>
+                        <span className="font-medium text-muted-foreground">Notes:</span>
+                        <div className="text-foreground mt-1 p-2 bg-muted rounded-md">{detailsMember.notes}</div>
+                      </div>
                     )}
                   </div>
-                </div>
-              </SheetHeader>
-              <div className="space-y-6 mt-4">
-                {/* Contact Information */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-foreground">Contact Information</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3 text-base text-muted-foreground">
-                      <Phone className="h-5 w-5 text-blue-500" />
-                      <span>{detailsMember.phone_number || <span className="italic">No phone</span>}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-base text-muted-foreground">
-                      <Mail className="h-5 w-5 text-green-500" />
-                      <span>{detailsMember.email || <span className="italic">No email</span>}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-base text-muted-foreground">
-                      <MapPin className="h-5 w-5 text-purple-500" />
-                      <span>{detailsMember.address || <span className="italic">No address</span>}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-base text-muted-foreground">
-                      <Calendar className="h-5 w-5 text-orange-500" />
-                      <span>Joined: {detailsMember.membership_date ? new Date(detailsMember.membership_date).toLocaleDateString() : <span className="italic">Unknown</span>}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Donation Information */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-foreground">Donation History</h3>
-                  {(() => {
-                    const donationStats = getMemberDonationStats(detailsMember.id);
-                    return (
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-4">
-                          <Card className="bg-emerald-50 border-emerald-200">
-                            <CardContent className="p-3">
-                              <div className="text-center">
-                                <div className="text-2xl font-bold text-emerald-700">₵{donationStats.totalAmount.toLocaleString()}</div>
-                                <div className="text-xs text-emerald-600">Total Donations</div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                          <Card className="bg-blue-50 border-blue-200">
-                            <CardContent className="p-3">
-                              <div className="text-center">
-                                <div className="text-2xl font-bold text-blue-700">{donationStats.donationCount}</div>
-                                <div className="text-xs text-blue-600">Donation Count</div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
-                        
-                        {donationStats.hasDonations ? (
-                          <div className="space-y-2">
-                            <h4 className="text-sm font-medium text-foreground">Recent Donations</h4>
-                            <div className="space-y-2 max-h-40 overflow-y-auto">
-                              {donationStats.recentDonations.map((donation, idx) => (
-                                <Card key={idx} className="bg-muted/30">
-                                  <CardContent className="p-3">
-                                    <div className="flex justify-between items-center">
-                                      <div>
-                                        <div className="font-medium text-foreground">₵{Number(donation.amount).toLocaleString()}</div>
-                                        <div className="text-xs text-muted-foreground">{donation.donation_type || 'General'}</div>
-                                      </div>
-                                      <div className="text-right">
-                                        <div className="text-xs text-muted-foreground">
-                                          {new Date(donation.donation_date).toLocaleDateString()}
-                                        </div>
-                                        <Badge variant="outline" className="text-xs">
-                                          {donation.payment_method || 'Unknown'}
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                  </CardContent>
-                                </Card>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-center py-4 text-muted-foreground">
-                            <DollarSign className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                            <p>No donation records found</p>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* Additional Information */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-foreground">Additional Information</h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium text-muted-foreground">Department:</span>
-                      <div className="text-foreground">{detailsMember.department || <span className="italic">-</span>}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Role:</span>
-                      <div className="text-foreground">{detailsMember.role || <span className="italic">-</span>}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Marital Status:</span>
-                      <div className="text-foreground">{detailsMember.marital_status || <span className="italic">-</span>}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Gender:</span>
-                      <div className="text-foreground">{detailsMember.gender || <span className="italic">-</span>}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Date of Birth:</span>
-                      <div className="text-foreground">
-                        {detailsMember.date_of_birth ? new Date(detailsMember.date_of_birth).toLocaleDateString() : <span className="italic">-</span>}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Member ID:</span>
-                      <div className="text-foreground">{detailsMember.member_id || <span className="italic">-</span>}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Membership Type:</span>
-                      <div className="text-foreground">{detailsMember.membership_type || <span className="italic">-</span>}</div>
-                    </div>
-                  </div>
-                  {detailsMember.notes && (
-                    <div>
-                      <span className="font-medium text-muted-foreground">Notes:</span>
-                      <div className="text-foreground mt-1 p-2 bg-muted rounded-md">{detailsMember.notes}</div>
-                    </div>
-                  )}
                 </div>
               </div>
               <SheetClose asChild>
@@ -872,128 +1278,442 @@ export function MembersList() {
       {/* Edit Member Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Member</DialogTitle>
-            <DialogDescription>
-              Update the member's information and profile photo as needed.
-            </DialogDescription>
-          </DialogHeader>
-          {editingMember && (
-            <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(handleEditSubmit)} className="space-y-4">
-                <div className="flex flex-col items-center gap-2">
-                  <label htmlFor="edit-photo-upload" className="cursor-pointer">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage src={editPhotoPreview || editingMember?.profile_image_url || undefined} />
-                      <AvatarFallback>+</AvatarFallback>
-                    </Avatar>
-                  </label>
-                  <input
-                    id="edit-photo-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={e => {
-                      const file = e.target.files?.[0] || null;
-                      setEditPhotoFile(file);
-                      setEditPhotoPreview(file ? URL.createObjectURL(file) : null);
-                    }}
-                  />
-                  {editPhotoFile && <span className="text-xs text-muted-foreground">{editPhotoFile.name}</span>}
-                </div>
-                <div className="flex gap-2">
-                  <FormField name="first_name" control={editForm.control} render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>First Name</FormLabel>
+          <div className="overflow-y-auto max-h-[80vh] pt-2 pb-4">
+            <DialogHeader>
+              <DialogTitle>Edit Member</DialogTitle>
+              <DialogDescription>
+                Update the member's information and profile photo as needed.
+              </DialogDescription>
+            </DialogHeader>
+            {editingMember && (
+              <Form {...editForm}>
+                <form onSubmit={editForm.handleSubmit(handleEditSubmit)} className="space-y-4">
+                  <div className="flex flex-col items-center gap-2">
+                    <label htmlFor="edit-photo-upload" className="cursor-pointer">
+                      <Avatar className="h-16 w-16">
+                        <AvatarImage src={editPhotoPreview || editingMember?.profile_image_url || undefined} />
+                        <AvatarFallback>+</AvatarFallback>
+                      </Avatar>
+                    </label>
+                    <input
+                      id="edit-photo-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0] || null;
+                        setEditPhotoFile(file);
+                        setEditPhotoPreview(file ? URL.createObjectURL(file) : null);
+                      }}
+                    />
+                    {editPhotoFile && <span className="text-xs text-muted-foreground">{editPhotoFile.name}</span>}
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="first_name" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="First Name" {...field} required />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="last_name" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Last Name" {...field} required />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="email" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="Email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="phone_number" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Phone Number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="alternate_phone_number" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Alternate Phone</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Alternate Phone" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="emergency_contact" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Emergency Contact</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Emergency Contact" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="address" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Address" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="city" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>City</FormLabel>
+                        <FormControl>
+                          <Input placeholder="City" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="state" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>State</FormLabel>
+                        <FormControl>
+                          <Input placeholder="State" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="country" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Country</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Country" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="postal_code" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Postal Code</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Postal Code" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="home_town" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Home Town</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Home Town" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="date_of_birth" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Date of Birth</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="gender" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Gender</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Gender" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="male">Male</SelectItem>
+                              <SelectItem value="female">Female</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="marital_status" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Marital Status</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Marital Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="single">Single</SelectItem>
+                              <SelectItem value="married">Married</SelectItem>
+                              <SelectItem value="divorced">Divorced</SelectItem>
+                              <SelectItem value="widowed">Widowed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="occupation" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Occupation</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Occupation" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="education" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Education</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Education" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="primary">Primary</SelectItem>
+                              <SelectItem value="secondary">Secondary</SelectItem>
+                              <SelectItem value="diploma">Diploma</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="department" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Department</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Department" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="music">Music</SelectItem>
+                              <SelectItem value="usher_cleaner">Usher/Cleaner</SelectItem>
+                              <SelectItem value="media">Media</SelectItem>
+                              <SelectItem value="finance">Finance</SelectItem>
+                              <SelectItem value="welfare">Welfare</SelectItem>
+                              <SelectItem value="sunday_school">Sunday School</SelectItem>
+                              <SelectItem value="account">Account</SelectItem>
+                              <SelectItem value="welfare_committee">Welfare Committee</SelectItem>
+                              <SelectItem value="choir">Choir</SelectItem>
+                              <SelectItem value="cleaners">Cleaners</SelectItem>
+                              <SelectItem value="n_a">N/A</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="ministry" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Ministry</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Ministry" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="men_ministry">Men Ministry</SelectItem>
+                              <SelectItem value="youth_ministry">Youth Ministry</SelectItem>
+                              <SelectItem value="women_ministry">Women Ministry</SelectItem>
+                              <SelectItem value="children_ministry">Children's Ministry</SelectItem>
+                              <SelectItem value="all">All</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="group" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Group</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Group" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="prayer">Prayer</SelectItem>
+                              <SelectItem value="evangelism">Evangelism</SelectItem>
+                              <SelectItem value="follow_up">Follow Up</SelectItem>
+                              <SelectItem value="leaders">Leaders</SelectItem>
+                              <SelectItem value="prayer_tower">Prayer Tower</SelectItem>
+                              <SelectItem value="usher">Usher</SelectItem>
+                              <SelectItem value="youth_ministry">Youth Ministry</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="membership_status" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Status</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="active">Active</SelectItem>
+                              <SelectItem value="inactive">Inactive</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="membership_type" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Membership Type</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Membership Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="full_member">Full Member</SelectItem>
+                              <SelectItem value="friend_of_church">Friend of Church</SelectItem>
+                              <SelectItem value="new_convert">New Convert</SelectItem>
+                              <SelectItem value="visitor">Visitor</SelectItem>
+                              <SelectItem value="others">Others</SelectItem>
+                              <SelectItem value="regular">Regular</SelectItem>
+                              <SelectItem value="leadership">Leadership</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="membership_date" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Membership Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="member_id" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Member ID</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Member ID" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="tithe_number" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Tithe Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Tithe Number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="role" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Role</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Role" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="flex gap-2">
+                    <FormField name="baptism_status" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Baptism Status</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Baptism Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="baptized">Baptized</SelectItem>
+                              <SelectItem value="not_baptized">Not Baptized</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField name="volunteer_preferences_can_lead_group" control={editForm.control} render={({ field }) => (
+                      <FormItem className="flex-1 flex flex-col justify-end">
+                        <FormLabel>Can Lead Group?</FormLabel>
+                        <FormControl>
+                          <input type="checkbox" checked={field.value || false} onChange={e => field.onChange(e.target.checked)} className="h-5 w-5" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <FormField name="bio" control={editForm.control} render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bio</FormLabel>
                       <FormControl>
-                        <Input placeholder="First Name" {...field} required />
+                        <textarea className="w-full min-h-[60px] rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Short bio..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
-                  <FormField name="last_name" control={editForm.control} render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Last Name</FormLabel>
+                  <FormField name="notes" control={editForm.control} render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
                       <FormControl>
-                        <Input placeholder="Last Name" {...field} required />
+                        <textarea className="w-full min-h-[40px] rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Notes..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
-                </div>
-                <FormField name="email" control={editForm.control} render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="Email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField name="phone_number" control={editForm.control} render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Phone Number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField name="ministry" control={editForm.control} render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ministry</FormLabel>
-                    <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Ministry" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="men_ministry">Men Ministry</SelectItem>
-                          <SelectItem value="youth_ministry">Youth Ministry</SelectItem>
-                          <SelectItem value="women_ministry">Women Ministry</SelectItem>
-                          <SelectItem value="children_ministry">Children's Ministry</SelectItem>
-                          <SelectItem value="all">All</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField name="membership_status" control={editForm.control} render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="inactive">Inactive</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField name="address" control={editForm.control} render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Address" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <DialogFooter>
-                  <Button type="submit">Save Changes</Button>
-                  <DialogClose asChild>
-                    <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
-                  </DialogClose>
-                </DialogFooter>
-              </form>
-            </Form>
-          )}
+                  <DialogFooter>
+                    <Button type="submit">Save Changes</Button>
+                    <DialogClose asChild>
+                      <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </form>
+              </Form>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
       {/* Delete Member Confirmation Dialog */}

@@ -2,15 +2,16 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import QRCode from "react-qr-code";
+// Temporarily commenting out QR code to test if it's causing the loading issue
+// import QRCode from "react-qr-code";
 
 const mockChurch = {
-  name: "Shepherd Hub Church",
-  logoUrl: "/placeholder.svg", // Update with real logo path
-  address: "123 Faith Avenue, City, Country",
-  phone: "+123 456 7890",
-  email: "info@shepherdhub.org",
-  website: "www.shepherdhub.org",
+  name: "Greater Works City Church Int.",
+  logoUrl: "/church-logo.png",
+  address: "123 Faith Avenue, Accra, Ghana",
+  phone: "+233 54 387 1470",
+  email: "info@greaterworkscitychurch.org",
+  website: "www.greaterworkscitychurch.org",
 };
 
 // Simulate fetching thank you message from settings
@@ -19,12 +20,37 @@ async function fetchThankYouMessage() {
   return new Promise<string>(resolve => setTimeout(() => resolve("We deeply appreciate your support and generosity!"), 300));
 }
 
-export default function DonationReceipt({ church = mockChurch }: { church?: any }) {
+// Add TypeScript interfaces for donation and member
+interface Donation {
+  id: string;
+  donor_name: string;
+  donor_email?: string;
+  donor_phone?: string;
+  amount: number;
+  donation_type: string;
+  payment_method?: string;
+  donation_date: string;
+  reference_number?: string;
+  notes?: string;
+  member_id?: string;
+}
+
+interface Member {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone_number?: string;
+}
+
+export default function DonationReceipt() {
+  const church = mockChurch;
   const { id } = useParams();
-  const [donation, setDonation] = useState<any>(null);
+  const [donation, setDonation] = useState<Donation | null>(null);
   const [loading, setLoading] = useState(true);
-  const [member, setMember] = useState<any>(null);
+  const [member, setMember] = useState<Member | null>(null);
   const [thankYouMessage, setThankYouMessage] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     fetchThankYouMessage().then(msg => setThankYouMessage(msg));
@@ -33,12 +59,24 @@ export default function DonationReceipt({ church = mockChurch }: { church?: any 
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    supabase.from("donations").select("*", { count: "exact" }).eq("id", id).single().then(async ({ data }) => {
-      setDonation(data);
+    setError("");
+    supabase.from("donations").select("*", { count: "exact" }).eq("id", id).single().then(async ({ data, error }) => {
+      if (error || !data) {
+        setError("Donation not found or failed to fetch donation.");
+        setDonation(null);
+        setLoading(false);
+        return;
+      }
+      setDonation(data as Donation);
       setLoading(false);
       if (data && data.member_id) {
-        const { data: memberData } = await supabase.from("members").select("*").eq("id", data.member_id).single();
-        setMember(memberData);
+        const { data: memberData, error: memberError } = await supabase.from("members").select("*").eq("id", data.member_id).single();
+        if (memberError || !memberData) {
+          setError("Failed to fetch member details.");
+          setMember(null);
+        } else {
+          setMember(memberData as Member);
+        }
       }
     });
   }, [id]);
@@ -46,6 +84,7 @@ export default function DonationReceipt({ church = mockChurch }: { church?: any 
   const { name, logoUrl, address, phone, email, website } = church;
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center text-destructive">{error}</div>;
   if (!donation) return <div className="min-h-screen flex items-center justify-center text-destructive">Donation not found</div>;
 
   const receiptUrl = typeof window !== "undefined" ? window.location.href : "";
@@ -131,11 +170,11 @@ export default function DonationReceipt({ church = mockChurch }: { church?: any 
           <br />
           {email} | {website}
         </div>
-        {/* QR Code */}
-        <div className="absolute right-8 bottom-8 flex flex-col items-center print:hidden z-10">
+        {/* QR Code - Temporarily commented out */}
+        {/* <div className="absolute right-8 bottom-8 flex flex-col items-center print:hidden z-10">
           <QRCode value={receiptUrl} size={72} />
           <span className="text-xs text-gray-400 mt-1">Scan to verify receipt</span>
-        </div>
+        </div> */}
         {/* Print Button */}
         <div className="flex justify-center mt-6 print:hidden relative z-10">
           <Button onClick={() => window.print()} variant="outline">Print Receipt</Button>

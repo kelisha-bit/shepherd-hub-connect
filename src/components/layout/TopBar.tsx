@@ -29,20 +29,20 @@ export function TopBar() {
     : user?.email || "User";
 
   return (
-    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6">
-      <div className="flex items-center gap-4">
+    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-3 sm:px-4 md:px-6">
+      <div className="flex items-center gap-2 sm:gap-4">
         <SidebarTrigger />
-        <div className="relative">
+        <div className="relative hidden sm:block">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search members, events, etc..."
-            className="pl-10 w-64"
+            className="pl-10 w-[200px] md:w-[300px] lg:w-[400px]"
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="relative">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex">
           <Bell className="h-4 w-4" />
           <span className="absolute -top-1 -right-1 h-3 w-3 bg-destructive rounded-full text-xs flex items-center justify-center text-destructive-foreground">
             3
@@ -57,13 +57,13 @@ export function TopBar() {
                   {userInitials}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium">{userName}</span>
+              <span className="text-sm font-medium hidden sm:inline-block">{userName}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <div className="px-2 py-1.5">
-              <p className="text-xs text-muted-foreground">{user?.email}</p>
+              <p className="text-xs text-muted-foreground break-all">{user?.email}</p>
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem>

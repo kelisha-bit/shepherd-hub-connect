@@ -102,6 +102,24 @@ export function EventsList() {
   // Get unique event types for filter bar
   const eventTypes = Array.from(new Set(events.map((e) => e.event_type)));
 
+  // Helper to upload event image to Supabase Storage
+  async function uploadEventImage(file) {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `events/${fileName}`;
+    const { data, error } = await supabase.storage
+      .from('event-images') // Make sure this bucket exists
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+    if (error) throw error;
+    const { data: publicUrlData } = supabase.storage
+      .from('event-images')
+      .getPublicUrl(filePath);
+    return publicUrlData.publicUrl;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-950 py-8">
@@ -252,29 +270,55 @@ export function EventsList() {
         <EventCreateModal
           open={createOpen}
           onClose={() => setCreateOpen(false)}
-          onCreate={async (newEvent) => {
-            // Prepare event for Supabase
+          onCreate={async (newEvent, imageFile) => {
+            let imageUrl = null;
+            if (imageFile) {
+              try {
+                imageUrl = await uploadEventImage(imageFile);
+              } catch (err) {
+                toast({ title: "Image Upload Error", description: err.message, variant: "destructive" });
+                return;
+              }
+            }
             const eventToInsert = {
-              title: newEvent.title,
-              description: newEvent.description || null,
-              event_date: newEvent.event_date,
-              start_time: newEvent.start_time || null,
-              end_time: newEvent.end_time || null,
-              location: newEvent.location || null,
-              event_type: newEvent.event_type || null,
-              max_attendees: newEvent.max_attendees ? Number(newEvent.max_attendees) : null,
-              registration_required: !!newEvent.registration_required,
+              title: newEvent.title?.trim() || undefined,
+              description: newEvent.description?.trim() || null,
+              event_date: newEvent.event_date?.trim() || undefined,
+              start_time: newEvent.start_time?.trim() || null,
+              end_time: newEvent.end_time?.trim() || null,
+              location: newEvent.location?.trim() || null,
+              event_type: newEvent.event_type?.trim() || null,
+              max_attendees:
+                newEvent.max_attendees === undefined || newEvent.max_attendees === null || newEvent.max_attendees === ''
+                  ? null
+                  : Number(newEvent.max_attendees),
+              registration_required:
+                typeof newEvent.registration_required === 'boolean'
+                  ? newEvent.registration_required
+                  : !!newEvent.registration_required,
               current_attendees: 0,
-              image_url: newEvent.image_url || null,
+              ...(imageUrl ? { image_url: imageUrl } : {}),
             };
+            if (!eventToInsert.title || !eventToInsert.event_date) {
+              toast({
+                title: "Missing Required Fields",
+                description: "Title and Event Date are required.",
+                variant: "destructive",
+              });
+              return;
+            }
             const { data, error } = await supabase.from("events").insert([eventToInsert]).select().single();
             if (error) {
               console.error(error);
-              toast({ title: "Error", description: "Failed to create event.", variant: "destructive" });
+              toast({
+                title: "Error",
+                description: `Failed to create event. ${error.message}`,
+                variant: "destructive",
+              });
               return;
             }
             setEvents((prev) => [
-              { ...data, image_url: newEvent.image_url || undefined },
+              { ...data, image_url: imageUrl || undefined },
               ...prev,
             ]);
             setCreateOpen(false);

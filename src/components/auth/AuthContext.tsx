@@ -21,9 +21,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('AuthProvider: Setting up auth state listener');
+    
+    let isInitialized = false;
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('AuthProvider: Auth state change event:', event, 'Session:', session);
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
@@ -31,12 +36,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setRole(null);
         }
-        setLoading(false);
+        if (!isInitialized) {
+          isInitialized = true;
+          setLoading(false);
+        }
       }
     );
 
     // THEN check for existing session
+    console.log('AuthProvider: Checking for existing session');
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('AuthProvider: Existing session found:', session);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -44,21 +54,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setRole(null);
       }
-      setLoading(false);
+      if (!isInitialized) {
+        isInitialized = true;
+        setLoading(false);
+      }
+    }).catch(error => {
+      console.error('AuthProvider: Error getting session:', error);
+      if (!isInitialized) {
+        isInitialized = true;
+        setLoading(false);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    // Add a timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      if (!isInitialized) {
+        console.warn('AuthProvider: Timeout reached, forcing loading to false');
+        isInitialized = true;
+        setLoading(false);
+      }
+    }, 10000); // 10 second timeout
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   const fetchUserRole = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('user_id', userId)
-      .single();
-    if (!error && data) {
-      setRole(data.role || null);
-    } else {
+    console.log('AuthProvider: Fetching user role for:', userId);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error) {
+        console.error('AuthProvider: Error fetching user role:', error);
+        setRole(null);
+      } else {
+        console.log('AuthProvider: User role fetched:', data?.role);
+        setRole(data?.role || null);
+      }
+    } catch (error) {
+      console.error('AuthProvider: Exception fetching user role:', error);
       setRole(null);
     }
   };

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DollarSign, Calendar, Users, CheckCircle, TrendingUp } from "lucide-react";
+import { DollarSign, Calendar, Users, CheckCircle, TrendingUp, Bell } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -11,17 +11,30 @@ export default function MemberDashboard() {
   const [attendance, setAttendance] = useState<any[]>([]);
   const [donations, setDonations] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [loadingNotifications, setLoadingNotifications] = useState(true);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
-      fetchAttendance();
-      fetchDonations();
-      fetchGroups();
+      fetchEvents();
+      fetchNotifications();
+      checkDatabaseStructure();
     }
     // eslint-disable-next-line
   }, [user]);
+
+  useEffect(() => {
+    if (profile?.id) {
+      fetchAttendance(profile.id);
+      fetchDonations(profile.id);
+      fetchGroups(profile.id);
+    }
+    // eslint-disable-next-line
+  }, [profile]);
 
   const fetchProfile = async () => {
     const { data } = await supabase
@@ -29,37 +42,59 @@ export default function MemberDashboard() {
       .select("*")
       .eq("email", user?.email)
       .single();
+    console.log("Profile data:", data);
     setProfile(data);
   };
 
-  const fetchAttendance = async () => {
-    const { data } = await supabase
+  const fetchAttendance = async (memberId: string) => {
+    console.log("Fetching attendance for member ID:", memberId);
+    const { data, error } = await supabase
       .from("attendance")
       .select("*")
-      .eq("member_id", user?.id)
+      .eq("member_id", memberId)
       .order("attendance_date", { ascending: true });
+    console.log("Attendance data:", data, "Error:", error);
     setAttendance(data || []);
   };
 
-  const fetchDonations = async () => {
-    const { data } = await supabase
+  const fetchDonations = async (memberId: string) => {
+    console.log("Fetching donations for member ID:", memberId);
+    
+    // First try to fetch by member_id
+    let { data, error } = await supabase
       .from("donations")
       .select("*")
-      .eq("member_id", user?.id)
+      .eq("member_id", memberId)
       .order("donation_date", { ascending: false });
-    setDonations(data || []);
+    
+    console.log("Donations by member_id:", data, "Error:", error);
+    
+    // If no data or error, try to fetch by donor_email
+    if (!data || data.length === 0 || error) {
+      console.log("Trying to fetch by donor_email instead...");
+      const { data: emailData, error: emailError } = await supabase
+        .from("donations")
+        .select("*")
+        .eq("donor_email", user?.email)
+        .order("donation_date", { ascending: false });
+      
+      console.log("Donations by donor_email:", emailData, "Error:", emailError);
+      setDonations(emailData || []);
+    } else {
+      setDonations(data || []);
+    }
   };
 
-  const fetchGroups = async () => {
-    // Example: fetch group attendance for this member
+  const fetchGroups = async (memberId: string) => {
+    // Fetch attendance with member info to get group
     const { data } = await supabase
       .from("attendance")
-      .select("group, present")
-      .eq("member_id", user?.id);
+      .select("present, members(group)")
+      .eq("member_id", memberId);
     // Group by group name
     const groupMap: Record<string, { total: number; present: number }> = {};
     (data || []).forEach((a: any) => {
-      const group = a.group || "Other";
+      const group = a.members?.group || "Other";
       if (!groupMap[group]) groupMap[group] = { total: 0, present: 0 };
       groupMap[group].total++;
       if (a.present) groupMap[group].present++;
@@ -69,6 +104,41 @@ export default function MemberDashboard() {
       percent: total ? Math.round((present / total) * 100) : 0
     }));
     setGroups(stats);
+  };
+
+  const fetchEvents = async () => {
+    setLoadingEvents(true);
+    const today = new Date().toISOString().split("T")[0];
+    const { data } = await supabase
+      .from("events")
+      .select("*")
+      .gte("event_date", today)
+      .order("event_date", { ascending: true })
+      .limit(5);
+    setEvents(data || []);
+    setLoadingEvents(false);
+  };
+
+  const fetchNotifications = async () => {
+    setLoadingNotifications(true);
+    // Optionally filter by user or target_audience
+    const { data } = await supabase
+      .from("communications")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(5);
+    setNotifications(data || []);
+    setLoadingNotifications(false);
+  };
+
+  const checkDatabaseStructure = async () => {
+    console.log("Checking database structure...");
+    // Try to get a sample donation to see the structure
+    const { data, error } = await supabase
+      .from("donations")
+      .select("*")
+      .limit(1);
+    console.log("Sample donation structure:", data, "Error:", error);
   };
 
   // Attendance stats
@@ -149,6 +219,53 @@ export default function MemberDashboard() {
             </CardContent>
           </Card>
         </div>
+        {/* Upcoming Events */}
+        <Card className="rounded-2xl shadow-lg p-6 bg-gradient-to-br from-green-50 to-green-100">
+          <CardHeader className="flex flex-row items-center gap-2 pb-2">
+            <Calendar className="h-5 w-5 text-green-600" />
+            <CardTitle className="text-lg font-semibold text-green-900">Upcoming Events</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingEvents ? (
+              <div className="text-green-700">Loading events...</div>
+            ) : events.length === 0 ? (
+              <div className="text-green-700">No upcoming events</div>
+            ) : (
+              <ul className="space-y-2">
+                {events.map((event: any) => (
+                  <li key={event.id} className="flex flex-col md:flex-row md:items-center md:justify-between border-b last:border-b-0 py-2">
+                    <span className="font-medium text-green-800">{event.title}</span>
+                    <span className="text-green-700 text-sm">{new Date(event.event_date).toLocaleDateString()}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+        {/* Notifications */}
+        <Card className="rounded-2xl shadow-lg p-6 bg-gradient-to-br from-yellow-50 to-yellow-100">
+          <CardHeader className="flex flex-row items-center gap-2 pb-2">
+            <Bell className="h-5 w-5 text-yellow-600" />
+            <CardTitle className="text-lg font-semibold text-yellow-900">Notifications</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingNotifications ? (
+              <div className="text-yellow-700">Loading notifications...</div>
+            ) : notifications.length === 0 ? (
+              <div className="text-yellow-700">No notifications</div>
+            ) : (
+              <ul className="space-y-2">
+                {notifications.map((n: any) => (
+                  <li key={n.id} className="flex flex-col border-b last:border-b-0 py-2">
+                    <span className="font-medium text-yellow-800">{n.subject}</span>
+                    <span className="text-yellow-700 text-sm">{n.message}</span>
+                    <span className="text-yellow-600 text-xs">{new Date(n.created_at).toLocaleString()}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </div>
       {/* Right Side Cards */}
       <div className="w-full lg:w-80 flex flex-col gap-8">

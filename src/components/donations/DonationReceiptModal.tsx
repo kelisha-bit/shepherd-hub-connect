@@ -8,12 +8,12 @@ import { Crown, Gift, CalendarHeart } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 const mockChurch = {
-  name: "Shepherd Hub Church",
-  logoUrl: "/placeholder.svg", // Update with real logo path
-  address: "123 Faith Avenue, City, Country",
-  phone: "+123 456 7890",
-  email: "info@shepherdhub.org",
-  website: "www.shepherdhub.org",
+  name: "Greater Works City Church Int.",
+  logoUrl: "/church-logo.png",
+  address: "123 Faith Avenue, Accra, Ghana",
+  phone: "+233 54 387 1470",
+  email: "info@greaterworkscity.org",
+  website: "www.greaterworkscity.org",
 };
 
 async function fetchThankYouMessage() {
@@ -67,7 +67,7 @@ export function DonationReceiptModal({ donationId, open, onOpenChange, church = 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full h-full max-w-none max-h-none md:max-w-xl md:max-h-[90vh] p-0 overflow-auto">
+      <DialogContent className="w-full h-full max-w-none max-h-none md:max-w-xl md:max-h-[90vh] p-0 overflow-auto bg-gradient-to-br from-blue-50 to-green-50">
         <DialogHeader className="print:hidden">
           <DialogTitle>Donation Receipt</DialogTitle>
           <DialogDescription>Official receipt for this donation</DialogDescription>
@@ -144,10 +144,13 @@ export function DonationReceiptModal({ donationId, open, onOpenChange, church = 
               {/* Signature/Stamp Area */}
               <div className="flex flex-row items-end mt-8 mb-2 gap-4">
                 <div className="flex-1">
-                  <div className="w-48 h-10 border-b-2 border-gray-300 mb-1 relative">
-                    <span className="absolute left-2 bottom-0 text-xs text-gray-400 font-signature italic" style={{ fontFamily: 'cursive' }}>
-                      Signature
-                    </span>
+                  <div className="w-48 h-10 border-b-2 border-gray-300 mb-1 relative flex items-end">
+                    <img
+                      src="/signature.png"
+                      alt="Authorized Signature"
+                      className="h-8 object-contain absolute left-2 bottom-0"
+                      style={{ maxWidth: "180px" }}
+                    />
                   </div>
                   <span className="text-xs text-gray-500">Authorized Signature</span>
                 </div>
@@ -165,10 +168,9 @@ export function DonationReceiptModal({ donationId, open, onOpenChange, church = 
                 <br />
                 {email} | {website}
               </div>
-              {/* QR Code */}
-              <div className="absolute right-8 bottom-8 flex flex-col items-center print:hidden z-10">
+              {/* QR Code - Temporarily commented out */}
+              <div className="flex justify-center mt-4">
                 <QRCode value={receiptUrl} size={72} />
-                <span className="text-xs text-gray-400 mt-1">Scan to verify receipt</span>
               </div>
               {/* Print & PDF Buttons */}
               <div className="flex justify-center gap-2 mt-6 print:hidden">

@@ -5,6 +5,8 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://wucdbfyyoorxzwnnnpgh.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1Y2RiZnl5b29yeHp3bm5ucGdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2NDM4MjUsImV4cCI6MjA2ODIxOTgyNX0.ArzYIdqR6XF0dg14LbyhF_6PLzfrNAYoHXaqRlucwFA";
 
+console.log('Supabase client: Initializing with URL:', SUPABASE_URL);
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
@@ -13,5 +15,32 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+  }
+});
+
+// Test the connection with better error handling
+const testConnection = async () => {
+  try {
+    console.log('Supabase client: Testing connection...');
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error('Supabase client: Connection test failed:', error);
+      return false;
+    } else {
+      console.log('Supabase client: Connection test successful, session:', data.session);
+      return true;
+    }
+  } catch (error) {
+    console.error('Supabase client: Exception during connection test:', error);
+    return false;
+  }
+};
+
+// Test the connection immediately
+testConnection().then(success => {
+  if (success) {
+    console.log('Supabase client: Connection test completed successfully');
+  } else {
+    console.error('Supabase client: Connection test failed');
   }
 });

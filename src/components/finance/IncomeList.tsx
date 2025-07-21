@@ -295,6 +295,26 @@ export function IncomeList({
     }
   }, [toast]);
 
+  // Helper to get category name by id
+  function getCategoryName(categoryId: string) {
+    const category = categories.find((cat) => cat.id === categoryId);
+    return category?.name || "Unknown Category";
+  }
+
+  // Helper to get category color class by id
+  function getCategoryColor(categoryId: string) {
+    const category = categories.find((cat) => cat.id === categoryId);
+    return category?.color || "bg-gray-100 text-gray-800";
+  }
+
+  // Helper to get initials from a string (e.g., member/source name)
+  function getInitials(name?: string) {
+    if (!name) return "?";
+    const words = name.split(" ").filter(Boolean);
+    if (words.length === 1) return words[0][0]?.toUpperCase() || "?";
+    return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+  }
+
   // Fetch data on component mount
   useEffect(() => {
     fetchCategories();
@@ -599,13 +619,13 @@ export function IncomeList({
                       <TableCell>
                         <div className="flex items-center gap-2 max-w-[180px]">
                           <span className="truncate" title={income.source || "-"}>{income.source || "-"}</span>
-                          {income.notes && (
+                          {income.description && (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p className="max-w-xs">{income.notes}</p>
+                                <p className="max-w-xs">{income.description}</p>
                               </TooltipContent>
                             </Tooltip>
                           )}

@@ -15,6 +15,7 @@ export default function MemberProfilePage() {
   const [edit, setEdit] = useState(false);
 
   useEffect(() => {
+    console.log("User in MemberProfilePage:", user);
     if (user) fetchProfile();
     // eslint-disable-next-line
   }, [user]);
@@ -26,6 +27,7 @@ export default function MemberProfilePage() {
       .select("*")
       .eq("email", user?.email)
       .single();
+    console.log("Profile fetch result:", { data, error });
     if (error) {
       toast({ title: "Error", description: "Could not fetch profile", variant: "destructive" });
     } else {
@@ -61,7 +63,11 @@ export default function MemberProfilePage() {
   };
 
   if (loading && !profile) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (!profile) return <div className="min-h-screen flex items-center justify-center">Profile not found</div>;
+  if (!profile) return (
+    <div className="min-h-screen flex items-center justify-center">
+      Profile not found. Please contact support or try logging out and in again.
+    </div>
+  );
 
   return (
     <div className="py-8 px-4 md:px-12 lg:px-32">
