@@ -37,7 +37,7 @@ export default function ModernDonationReceipt({
 }) {
   const receiptRef = useRef<HTMLDivElement>(null);
   const handlePrint = useReactToPrint({
-    content: () => receiptRef.current,
+    contentRef: receiptRef,
     documentTitle: `DonationReceipt-${donation.reference_number || donation.donation_date}`,
   });
 

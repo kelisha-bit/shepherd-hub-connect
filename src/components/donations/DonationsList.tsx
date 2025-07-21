@@ -106,7 +106,7 @@ export function DonationsList() {
       setUserRoleLoading(true);
       supabase.from("profiles").select("role").eq("user_id", user.id).single().then(({ data }) => {
         setUserRole(data?.role || null);
-      }).finally(() => setUserRoleLoading(false));
+      }).then(() => setUserRoleLoading(false));
     } else {
       setUserRole(null);
       setUserRoleLoading(false);
@@ -320,16 +320,8 @@ export function DonationsList() {
   }
 
   const handlePrint = useReactToPrint({
-    content: () => dashboardRef.current,
+    contentRef: dashboardRef,
     documentTitle: "DonationsDashboard",
-    removeAfterPrint: true,
-    onBeforeGetContent: () => {
-      if (userRole !== 'admin') {
-        toast({ title: "Access Denied", description: "Only admins can export PDF.", variant: "destructive" });
-        return Promise.reject();
-      }
-      return Promise.resolve();
-    },
   });
 
   if (loading) {

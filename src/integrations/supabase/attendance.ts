@@ -29,15 +29,13 @@ export async function fetchAttendance({
   let query = supabase
     .from('attendance')
     .select('*')
-    .order('date', { ascending: false })
+    .order('attendance_date', { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (date) query = query.eq('date', date);
-  if (service_type) query = query.eq('service_type', service_type);
+  if (date) query = query.eq('attendance_date', date);
   if (member_id) query = query.eq('member_id', member_id);
-  if (group) query = query.eq('group', group);
-  if (from) query = query.gte('date', from);
-  if (to) query = query.lte('date', to);
+  if (from) query = query.gte('attendance_date', from);
+  if (to) query = query.lte('attendance_date', to);
 
   const { data, error } = await query;
   if (error) throw error;
