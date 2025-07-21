@@ -12,20 +12,104 @@ export default function MemberDonationsPage() {
   const [donations, setDonations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [receiptId, setReceiptId] = useState<string | null>(null);
+  const [memberId, setMemberId] = useState<string | null>(null);
+  const [memberEmail, setMemberEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) fetchDonations();
+    if (user) {
+      findMemberId();
+    }
     // eslint-disable-next-line
   }, [user]);
 
+  useEffect(() => {
+    if (memberId || memberEmail) {
+      fetchDonations();
+    }
+  }, [memberId, memberEmail]);
+
+  const findMemberId = async () => {
+    console.log("MemberDonationsPage: Finding member ID for user:", user?.email);
+    setMemberEmail(user?.email || null);
+    
+    // First try to find member by email
+    const { data: emailData, error: emailError } = await supabase
+      .from("members")
+      .select("id, email")
+      .eq("email", user?.email)
+      .single();
+    
+    console.log("MemberDonationsPage: Member by email:", emailData, "Error:", emailError);
+    
+    if (emailData) {
+      console.log("MemberDonationsPage: Found member by email, ID:", emailData.id);
+      setMemberId(emailData.id);
+      return;
+    }
+    
+    // If not found by email, try by auth ID
+    const { data: idData, error: idError } = await supabase
+      .from("members")
+      .select("id, email")
+      .eq("id", user?.id)
+      .single();
+    
+    console.log("MemberDonationsPage: Member by auth ID:", idData, "Error:", idError);
+    
+    if (idData) {
+      console.log("MemberDonationsPage: Found member by auth ID:", idData.id);
+      setMemberId(idData.id);
+      return;
+    }
+    
+    console.log("MemberDonationsPage: Could not find member ID, using auth ID as fallback");
+    setMemberId(user?.id || null);
+  };
+
   const fetchDonations = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("donations")
-      .select("*")
-      .eq("member_id", user?.id)
-      .order("donation_date", { ascending: false });
-    setDonations(data || []);
+    console.log("MemberDonationsPage: Fetching donations for member ID:", memberId);
+    
+    let allDonations: any[] = [];
+    
+    // Try to fetch by member_id if available
+    if (memberId) {
+      const { data, error } = await supabase
+        .from("donations")
+        .select("*")
+        .eq("member_id", memberId)
+        .order("donation_date", { ascending: false });
+      
+      console.log("MemberDonationsPage: Donations by member_id:", data, "Error:", error);
+      
+      if (!error && data && data.length > 0) {
+        allDonations = [...data];
+      }
+    }
+    
+    // Also try to fetch by donor_email if available
+    if (memberEmail) {
+      const { data: emailData, error: emailError } = await supabase
+        .from("donations")
+        .select("*")
+        .eq("donor_email", memberEmail)
+        .order("donation_date", { ascending: false });
+      
+      console.log("MemberDonationsPage: Donations by donor_email:", emailData, "Error:", emailError);
+      
+      if (!emailError && emailData && emailData.length > 0) {
+        // Combine with member_id results, avoiding duplicates
+        const existingIds = new Set(allDonations.map(d => d.id));
+        const newDonations = emailData.filter(d => !existingIds.has(d.id));
+        allDonations = [...allDonations, ...newDonations];
+      }
+    }
+    
+    // Sort combined results by date
+    allDonations.sort((a, b) => new Date(b.donation_date).getTime() - new Date(a.donation_date).getTime());
+    
+    console.log("MemberDonationsPage: Combined donations:", allDonations);
+    setDonations(allDonations);
     setLoading(false);
   };
 
@@ -77,4 +161,4 @@ export default function MemberDonationsPage() {
       <DonationReceiptModal donationId={receiptId || ""} open={!!receiptId} onOpenChange={() => setReceiptId(null)} />
     </div>
   );
-} 
+}

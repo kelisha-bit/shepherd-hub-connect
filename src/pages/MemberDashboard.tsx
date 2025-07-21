@@ -37,13 +37,49 @@ export default function MemberDashboard() {
   }, [profile]);
 
   const fetchProfile = async () => {
-    const { data } = await supabase
+    console.log("MemberDashboard: Fetching profile for user email:", user?.email);
+    
+    // Try to find member by email
+    const { data, error } = await supabase
       .from("members")
       .select("*")
       .eq("email", user?.email)
       .single();
-    console.log("Profile data:", data);
-    setProfile(data);
+    
+    console.log("MemberDashboard: Profile data by email:", data, "Error:", error);
+    
+    if (error || !data) {
+      console.log("MemberDashboard: Member not found by email, trying by auth ID...");
+      
+      // If not found by email, try by auth user ID
+      const { data: idData, error: idError } = await supabase
+        .from("members")
+        .select("*")
+        .eq("id", user?.id)
+        .single();
+      
+      console.log("MemberDashboard: Profile data by ID:", idData, "Error:", idError);
+      
+      if (idData) {
+        setProfile(idData);
+      } else {
+        console.error("MemberDashboard: Could not find member profile by email or ID");
+        // Try to get all members with similar email to debug
+        if (user?.email) {
+          const emailParts = user.email.split('@');
+          if (emailParts.length > 0) {
+            const { data: similarData } = await supabase
+              .from("members")
+              .select("id, email, first_name, last_name")
+              .ilike("email", `%${emailParts[0]}%`);
+            
+            console.log("MemberDashboard: Similar email members:", similarData);
+          }
+        }
+      }
+    } else {
+      setProfile(data);
+    }
   };
 
   const fetchAttendance = async (memberId: string) => {
@@ -307,4 +343,4 @@ export default function MemberDashboard() {
       </div>
     </div>
   );
-} 
+}

@@ -13,10 +13,10 @@ export default function MemberPortalLayout({ children }: MemberPortalLayoutProps
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <MemberSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <MemberTopBar />
-          <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-x-hidden">
-            <div className="container mx-auto max-w-7xl">
+          <main className="flex-1 p-2 sm:p-4 md:p-6 overflow-x-hidden">
+            <div className="container mx-auto px-1 sm:px-2 md:px-4 max-w-full lg:max-w-7xl">
               {children || <Outlet />}
             </div>
           </main>
@@ -24,4 +24,4 @@ export default function MemberPortalLayout({ children }: MemberPortalLayoutProps
       </div>
     </SidebarProvider>
   );
-} 
+}

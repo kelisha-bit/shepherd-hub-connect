@@ -103,21 +103,21 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 p-4 space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 p-2 sm:p-4 space-y-4 sm:space-y-8">
       {/* Welcome Header */}
       <div className="animate-fade-in">
-        <div className="text-center space-y-2 mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+        <div className="text-center space-y-1 sm:space-y-2 mb-4 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             Church Management Dashboard
           </h1>
-          <p className="text-muted-foreground text-lg">Welcome back! Here's what's happening today.</p>
+          <p className="text-muted-foreground text-sm sm:text-base md:text-lg">Welcome back! Here's what's happening today.</p>
         </div>
       </div>
 
       {/* Summary Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-scale-in">
-        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:shadow-2xl hover:scale-105 transition-all duration-300">
-          <CardContent className="p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 animate-scale-in">
+        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:shadow-xl hover:scale-102 transition-all duration-300">
+          <CardContent className="p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-blue-100 text-sm font-medium">Today's Attendance</p>
@@ -135,8 +135,8 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-green-500 to-green-600 text-white hover:shadow-2xl hover:scale-105 transition-all duration-300">
-          <CardContent className="p-6">
+        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-green-500 to-green-600 text-white hover:shadow-xl hover:scale-102 transition-all duration-300">
+          <CardContent className="p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-green-100 text-sm font-medium">Total Donations</p>
@@ -154,8 +154,8 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-purple-500 to-purple-600 text-white hover:shadow-2xl hover:scale-105 transition-all duration-300">
-          <CardContent className="p-6">
+        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-purple-500 to-purple-600 text-white hover:shadow-xl hover:scale-102 transition-all duration-300">
+          <CardContent className="p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-purple-100 text-sm font-medium">Upcoming Events</p>
@@ -173,8 +173,8 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-orange-500 to-orange-600 text-white hover:shadow-2xl hover:scale-105 transition-all duration-300">
-          <CardContent className="p-6">
+        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-orange-500 to-orange-600 text-white hover:shadow-xl hover:scale-102 transition-all duration-300">
+          <CardContent className="p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-orange-100 text-sm font-medium">Growth Rate</p>
@@ -192,7 +192,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
         {/* Attendance Analytics */}
         <Card className="lg:col-span-2 border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
           <CardHeader className="flex flex-row items-center justify-between">

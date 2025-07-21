@@ -29,14 +29,14 @@ export function TopBar() {
     : user?.email || "User";
 
   return (
-    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-3 sm:px-4 md:px-6">
-      <div className="flex items-center gap-2 sm:gap-4">
+    <header className="h-14 sm:h-16 border-b border-border bg-card flex items-center justify-between px-2 sm:px-4 md:px-6">
+      <div className="flex items-center gap-1 sm:gap-4">
         <SidebarTrigger />
         <div className="relative hidden sm:block">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search members, events, etc..."
-            className="pl-10 w-[200px] md:w-[300px] lg:w-[400px]"
+            className="pl-10 w-[180px] md:w-[250px] lg:w-[350px] xl:w-[400px]"
           />
         </div>
       </div>
