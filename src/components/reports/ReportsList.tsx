@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { Users, DollarSign, Calendar, TrendingUp, Download } from "lucide-react";
+import { Users, DollarSign, Calendar, TrendingUp, Download, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 export function ReportsList() {
   const [stats, setStats] = useState({
@@ -206,8 +207,10 @@ export function ReportsList() {
             <p className="text-sm text-muted-foreground mb-4">
               Track how your church membership is growing over time
             </p>
-            <Button variant="outline" className="w-full">
-              View Full Report
+            <Button variant="outline" className="w-full" asChild>
+              <Link to="/reports/member-growth">
+                View Full Report <ChevronRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -220,8 +223,10 @@ export function ReportsList() {
             <p className="text-sm text-muted-foreground mb-4">
               Detailed breakdown of donations and financial trends
             </p>
-            <Button variant="outline" className="w-full">
-              View Full Report
+            <Button variant="outline" className="w-full" asChild>
+              <Link to="/reports/financial-summary">
+                View Full Report <ChevronRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -234,8 +239,10 @@ export function ReportsList() {
             <p className="text-sm text-muted-foreground mb-4">
               Attendance trends and event performance metrics
             </p>
-            <Button variant="outline" className="w-full">
-              View Full Report
+            <Button variant="outline" className="w-full" asChild>
+              <Link to="/reports/event-analytics">
+                View Full Report <ChevronRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </CardContent>
         </Card>

@@ -30,6 +30,9 @@ import FinanceIncomePage from './pages/FinanceIncomePage';
 import FinanceExpensePage from './pages/FinanceExpensePage';
 import FinanceGoalsPage from './pages/FinanceGoalsPage';
 import FinanceReportsPage from './pages/FinanceReportsPage';
+import MemberGrowthReportPage from './pages/MemberGrowthReportPage';
+import FinancialSummaryReportPage from './pages/FinancialSummaryReportPage';
+import EventAnalyticsReportPage from './pages/EventAnalyticsReportPage';
 import { supabase } from "@/integrations/supabase/client";
 import React from "react";
 
@@ -191,6 +194,30 @@ const App = () => {
                     <AppLayout>
                       <ReportsList />
                     </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/reports/member-growth" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <MemberGrowthReportPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/reports/financial-summary" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <FinancialSummaryReportPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/reports/event-analytics" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <EventAnalyticsReportPage />
                   </ProtectedRoute>
                 } 
               />
