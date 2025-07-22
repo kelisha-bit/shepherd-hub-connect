@@ -341,4 +341,4 @@ export function EventAnalyticsReport() {
 }
 
 // Import ComposedChart from recharts
-const { ComposedChart } = require('recharts');
+import { ComposedChart } from 'recharts';
