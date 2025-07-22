@@ -119,5 +119,26 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+  }
+
+  /* Improve mobile experience */
+  @media (max-width: 640px) {
+    html {
+      font-size: 14px;
+    }
+
+    /* Improve tap targets on mobile */
+    button, a, input, select, textarea {
+      @apply min-h-10 min-w-10;
+    }
+
+    /* Adjust form elements for better mobile experience */
+    input, select, textarea {
+      @apply text-base;
+      font-size: 16px !important; /* Prevent zoom on iOS */
+    }
   }
 }

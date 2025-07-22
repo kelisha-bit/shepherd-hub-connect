@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { User, Calendar, DollarSign, Bell, Home, Church } from "lucide-react";
+import { User, Calendar, DollarSign, Bell, Home, Church, Palette } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +20,7 @@ const menuItems = [
   { title: "Donations", url: "/member/donations", icon: DollarSign },
   { title: "Events", url: "/member/events", icon: Calendar },
   { title: "Notifications", url: "/member/notifications", icon: Bell, badge: 3 },
+  { title: "Theme Demo", url: "/theme-demo", icon: Palette },
 ];
 
 export function MemberSidebar() {
@@ -74,4 +75,4 @@ export function MemberSidebar() {
       </SidebarContent>
     </Sidebar>
   );
-} 
+}

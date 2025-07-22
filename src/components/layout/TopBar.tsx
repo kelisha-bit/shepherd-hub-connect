@@ -1,4 +1,5 @@
 import { Bell, Search, User, LogOut } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,7 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4">
+        <ThemeToggle />
         <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex">
           <Bell className="h-4 w-4" />
           <span className="absolute -top-1 -right-1 h-3 w-3 bg-destructive rounded-full text-xs flex items-center justify-center text-destructive-foreground">

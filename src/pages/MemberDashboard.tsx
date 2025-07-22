@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DollarSign, Calendar, Users, CheckCircle, TrendingUp, Bell } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import ChurchWeeklyActivities from "@/components/church/ChurchWeeklyActivities";
 
 export default function MemberDashboard() {
   const { user } = useAuth();
@@ -305,24 +306,13 @@ export default function MemberDashboard() {
       </div>
       {/* Right Side Cards */}
       <div className="w-full lg:w-80 flex flex-col gap-8">
-        {/* Payment Details Card */}
-        <Card className="rounded-2xl shadow-lg p-6 bg-gradient-to-br from-purple-200 to-blue-100">
+        {/* Church Weekly Activities Card */}
+        <Card className="rounded-2xl shadow-lg p-6 bg-gradient-to-br from-blue-50 to-blue-100 min-h-[280px] flex flex-col justify-center">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold mb-2 text-blue-900">Payment Details</CardTitle>
+            <CardTitle className="text-lg font-semibold mb-2 text-blue-900 text-center">Church Weekly Activities</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-blue-800">Card Number:</span>
-                <span className="bg-white px-2 py-1 rounded text-sm text-blue-900">2366 2366 2366 2366</span>
-              </div>
-              <div className="flex gap-2 mt-2">
-                <img src="/public/placeholder.svg" alt="Western Union" className="h-6" />
-                <img src="/public/placeholder.svg" alt="GPay" className="h-6" />
-                <img src="/public/placeholder.svg" alt="Mastercard" className="h-6" />
-                <img src="/public/placeholder.svg" alt="Visa" className="h-6" />
-              </div>
-            </div>
+            <ChurchWeeklyActivities />
           </CardContent>
         </Card>
         {/* Subscription/Premium Card */}

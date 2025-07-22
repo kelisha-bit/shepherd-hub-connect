@@ -1,6 +1,6 @@
-# Welcome to your Expo app 👋
+# Shepherd Hub Connect Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is the mobile app companion for the Shepherd Hub Connect church management system, built with [Expo](https://expo.dev).
 
 ## Get started
 
@@ -15,6 +15,21 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    ```bash
    npx expo start
    ```
+
+## Responsive Components
+
+This app includes a comprehensive set of responsive components that work in harmony with the web application. These components automatically adapt to different screen sizes and orientations.
+
+### Key Features
+
+- **Responsive Hooks**: `useResponsive`, `useBreakpointValue`, `useMinBreakpoint`, `useMaxBreakpoint`
+- **Responsive Components**: `ResponsiveContainer`, `ResponsiveGrid`, `ResponsiveVisibility`
+- **Convenience Components**: `MobileOnly`, `TabletOnly`, `DesktopOnly`
+- **Typography Components**: `ResponsiveTypography`, `ResponsiveHeading`
+
+Check out the "Responsive" tab in the app to see these components in action.
+
+For detailed documentation, see [docs/responsive-components.md](./docs/responsive-components.md).
 
 In the output, you'll find options to open the app in a
 

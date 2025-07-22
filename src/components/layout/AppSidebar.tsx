@@ -16,6 +16,8 @@ import {
   TrendingDown,
   TrendingUp,
   Target,
+  Smartphone,
+  Palette,
 } from "lucide-react";
 
 import {
@@ -42,6 +44,8 @@ const menuItems = [
   { title: "Events", url: "/events", icon: Calendar },
   { title: "Communications", url: "/communications", icon: MessageSquare },
   { title: "Reports", url: "/reports", icon: BarChart3 },
+  { title: "Responsive Demo", url: "/responsive-demo", icon: Smartphone },
+  { title: "Theme Demo", url: "/theme-demo", icon: Palette },
 ];
 
 const settingsItems = [

@@ -1,13 +1,14 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons, FontAwesome, Feather, Entypo } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -15,8 +16,13 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
+        headerRight: () => (
+          <View style={{ marginRight: 16 }}>
+            <ThemeToggle />
+          </View>
+        ),
+        headerShown: true,
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
@@ -83,6 +89,24 @@ export default function TabLayout() {
           title: 'Profile',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-circle" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="responsive-demo"
+        options={{
+          title: 'Responsive',
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="smartphone" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="theme-demo"
+        options={{
+          title: 'Theme',
+          tabBarIcon: ({ color, size }) => (
+            <Entypo name="palette" size={size} color={color} />
           ),
         }}
       />

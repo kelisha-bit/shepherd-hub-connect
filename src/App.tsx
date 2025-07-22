@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { AppLayout } from "./components/layout/AppLayout";
 import Dashboard from "./components/dashboard/Dashboard";
 import { MembersList } from "./components/members/MembersList";
@@ -14,6 +15,8 @@ import { CommunicationsList } from "./components/communications/CommunicationsLi
 import { ReportsList } from "./components/reports/ReportsList";
 import { SettingsPage } from "./components/settings/SettingsPage";
 import { AuthProvider } from "./components/auth/AuthContext";
+import { ResponsiveProvider } from '@/contexts/ResponsiveContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ProtectedRoute, AdminRoute } from "./components/auth/ProtectedRoute";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -27,6 +30,8 @@ import MemberDonationsPage from "./pages/MemberDonationsPage";
 import MemberEventsPage from "./pages/MemberEventsPage";
 import MemberNotificationsPage from "./pages/MemberNotificationsPage";
 import FinanceIncomePage from './pages/FinanceIncomePage';
+import ResponsiveDemo from './pages/ResponsiveDemo';
+import ThemeDemo from './pages/ThemeDemo';
 import FinanceExpensePage from './pages/FinanceExpensePage';
 import FinanceGoalsPage from './pages/FinanceGoalsPage';
 import FinanceReportsPage from './pages/FinanceReportsPage';
@@ -97,14 +102,21 @@ const App = () => {
   
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
+      <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+        <AuthProvider>
+          <ResponsiveProvider>
+            <ThemeProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+              <Routes>
               {/* Test route to check if routing works */}
-              <Route path="/test" element={<TestComponent />} />
+                <Route path="/test" element={<TestComponent />} />
+                {/* Responsive components demo */}
+                <Route path="/responsive-demo" element={<ResponsiveDemo />} />
+                {/* Theme demo page */}
+                <Route path="/theme-demo" element={<ThemeDemo />} />
               
               <Route path="/auth" element={<Auth />} />
               <Route 
@@ -298,10 +310,13 @@ const App = () => {
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+              </Routes>
+                </BrowserRouter>
+              </TooltipProvider>
+            </ThemeProvider>
+          </ResponsiveProvider>
+        </AuthProvider>
+      </NextThemesProvider>
     </QueryClientProvider>
   );
 };

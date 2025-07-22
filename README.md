@@ -60,6 +60,26 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Responsive Components
+
+This project includes a comprehensive set of responsive components that work across both web and mobile platforms:
+
+### Web Application
+
+- **Responsive Context**: Global responsive state provider
+- **Responsive Hooks**: `useResponsive`, `useBreakpoint`, `useBreakpointValue`, etc.
+- **Responsive Components**: `ResponsiveContainer`, `ResponsiveGrid`, `ResponsiveVisibility`, etc.
+
+To see these components in action, visit the `/responsive-demo` route in the web application.
+
+### Mobile Application
+
+The mobile app includes matching responsive components that provide a consistent experience across platforms.
+
+For detailed documentation, see:
+- Web: `src/docs/responsive-components.md`
+- Mobile: `mobile-app/docs/responsive-components.md`
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/f0332881-547d-45ff-b381-2ad6e6cd0af5) and click on Share -> Publish.
