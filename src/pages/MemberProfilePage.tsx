@@ -1,18 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/components/auth/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Camera, Loader2 } from "lucide-react";
 
 export default function MemberProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [edit, setEdit] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     console.log("User in MemberProfilePage:", user);
@@ -51,8 +55,21 @@ export default function MemberProfilePage() {
         group: profile.group,
         date_of_birth: profile.date_of_birth,
         address: profile.address,
+        avatar_url: profile.avatar_url
       })
       .eq("id", profile.id);
+    
+    // Also update the auth user's metadata
+    if (user) {
+      await supabase.auth.updateUser({
+        data: {
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          avatar_url: profile.avatar_url
+        }
+      });
+    }
+    
     if (error) {
       toast({ title: "Error", description: "Failed to update profile", variant: "destructive" });
     } else {
@@ -62,12 +79,136 @@ export default function MemberProfilePage() {
     setLoading(false);
   };
 
+  const ensureBucketExists = async () => {
+    try {
+      // Check if bucket exists
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      if (listError) throw listError;
+      
+      const bucketName = 'profile-pictures';
+      const bucketExists = buckets.some(bucket => bucket.name === bucketName);
+      
+      if (!bucketExists) {
+        // Create the bucket if it doesn't exist
+        const { error: createError } = await supabase.storage.createBucket(bucketName, {
+          public: true,
+          allowedMimeTypes: ['image/*'],
+          fileSizeLimit: 5 * 1024 * 1024, // 5MB limit
+        });
+        if (createError) throw createError;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error ensuring bucket exists:', error);
+      throw error;
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file (JPEG, PNG, etc.)",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setUploading(true);
+      
+      // Ensure bucket exists
+      await ensureBucketExists();
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+      
+      // Upload the file to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('profile-pictures')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+        
+      if (uploadError) {
+        console.error('Upload error details:', uploadError);
+        throw new Error(uploadError.message);
+      }
+      
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-pictures')
+        .getPublicUrl(filePath);
+      
+      // Update the profile with the new avatar URL
+      await supabase
+        .from('members')
+        .update({ avatar_url: publicUrl })
+        .eq('id', profile.id);
+      
+      // Also update the auth user's metadata
+      if (user) {
+        await supabase.auth.updateUser({
+          data: { avatar_url: publicUrl }
+        });
+      }
+      
+      // Update local state
+      setProfile({ ...profile, avatar_url: publicUrl });
+      
+      toast({
+        title: "Success",
+        description: "Profile picture updated successfully"
+      });
+      
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Failed to upload profile picture",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   if (loading && !profile) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!profile) return (
     <div className="min-h-screen flex items-center justify-center">
       Profile not found. Please contact support or try logging out and in again.
     </div>
   );
+
+  // Get user initials for avatar fallback
+  const userInitials = profile?.first_name && profile?.last_name
+    ? `${profile.first_name[0]}${profile.last_name[0]}`
+    : user?.email?.[0]?.toUpperCase() || "U";
 
   return (
     <div className="py-8 px-4 md:px-12 lg:px-32">
@@ -76,6 +217,47 @@ export default function MemberProfilePage() {
           <CardTitle>My Profile</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Profile Picture Section */}
+          <div className="flex flex-col items-center space-y-4 mb-6">
+            <div className="relative group">
+              <Avatar className="h-32 w-32 border-2 border-primary">
+                <AvatarImage 
+                  src={profile?.avatar_url || user?.user_metadata?.avatar_url} 
+                  alt={`${profile?.first_name} ${profile?.last_name}`} 
+                />
+                <AvatarFallback className="text-4xl bg-primary/10">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
+              {edit && (
+                <>
+                  <button
+                    onClick={triggerFileInput}
+                    disabled={uploading}
+                    className="absolute -bottom-2 -right-2 bg-primary text-white p-2 rounded-full shadow-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {uploading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Camera className="h-5 w-5" />
+                    )}
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground text-center">
+              {uploading ? 'Uploading...' : 'Click the camera icon to change your profile picture'}
+            </p>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="first_name">First Name</Label>
