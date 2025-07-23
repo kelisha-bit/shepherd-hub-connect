@@ -40,6 +40,9 @@ import FinancialSummaryReportPage from './pages/FinancialSummaryReportPage';
 import EventAnalyticsReportPage from './pages/EventAnalyticsReportPage';
 import { supabase } from "@/integrations/supabase/client";
 import React from "react";
+import SermonLibraryPage from "./pages/SermonLibraryPage";
+import PrayerRequestsPage from "./pages/PrayerRequestsPage";
+import SmallGroupsPage from "./pages/SmallGroupsPage";
 
 const queryClient = new QueryClient();
 
@@ -307,6 +310,9 @@ const App = () => {
                 <Route path="donations" element={<MemberDonationsPage />} />
                 <Route path="events" element={<MemberEventsPage />} />
                 <Route path="notifications" element={<MemberNotificationsPage />} />
+                <Route path="sermons" element={<SermonLibraryPage />} />
+                <Route path="prayer-requests" element={<PrayerRequestsPage />} />
+                <Route path="small-groups" element={<SmallGroupsPage />} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

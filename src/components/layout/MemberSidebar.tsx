@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { User, Calendar, DollarSign, Bell, Home, Church, Palette } from "lucide-react";
+import { User, Calendar, DollarSign, Bell, Home, Church, Palette, MessageSquare, BookOpen, HandHeart, Users, Bookmark } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -19,8 +19,12 @@ const menuItems = [
   { title: "Attendance", url: "/member/attendance", icon: Calendar },
   { title: "Donations", url: "/member/donations", icon: DollarSign },
   { title: "Events", url: "/member/events", icon: Calendar },
+  { title: "Communications", url: "/member/communications", icon: MessageSquare },
+  { title: "Resources", url: "/member/resources", icon: Bookmark },
+  { title: "Sermons", url: "/member/sermons", icon: BookOpen },
+  { title: "Prayer Requests", url: "/member/prayer-requests", icon: HandHeart },
+  { title: "Small Groups", url: "/member/small-groups", icon: Users },
   { title: "Notifications", url: "/member/notifications", icon: Bell, badge: 3 },
-  { title: "Theme Demo", url: "/theme-demo", icon: Palette },
 ];
 
 export function MemberSidebar() {

@@ -134,9 +134,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .from('members')
             .select('*')
             .eq('email', userEmail)
-            .single();
+            .maybeSingle(); // Use maybeSingle to avoid error on no result
           
           console.log('AuthProvider: Member by email:', emailMemberData, 'Error:', emailMemberError);
+
+          if (emailMemberError) {
+            console.error('AuthProvider: Error fetching member by email:', emailMemberError);
+          }
         }
       }
     } catch (error) {
