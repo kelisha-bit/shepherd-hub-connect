@@ -71,6 +71,4 @@ export type Database = {
 
 export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
 
-export type Enums = {
-  // Add any enums here if needed
-}
+export type Enums = Record<string, never> // Empty object type for enums

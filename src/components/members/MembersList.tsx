@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { 
   Search, 
@@ -48,6 +48,7 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
 import { v4 as uuidv4 } from 'uuid';
 import { Link, useNavigate } from "react-router-dom";
+import { Member, MemberFormData, Donation } from "@/types/member";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
 
@@ -55,16 +56,16 @@ export function MembersList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [ministryFilter, setMinistryFilter] = useState("all");
-  const [members, setMembers] = useState<any[]>([]);
-  const [memberDonations, setMemberDonations] = useState<Record<string, any[]>>({});
+  const [members, setMembers] = useState<Member[]>([]);
+  const [memberDonations, setMemberDonations] = useState<Record<string, Donation[]>>({});
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [editingMember, setEditingMember] = useState<any | null>(null);
+  const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deletingMember, setDeletingMember] = useState<any | null>(null);
+  const [deletingMember, setDeletingMember] = useState<Member | null>(null);
   const { toast } = useToast();
-  const form = useForm({
+  const form = useForm<MemberFormData>({
     defaultValues: {
       first_name: "",
       last_name: "",
@@ -146,11 +147,7 @@ export function MembersList() {
 
   useEffect(() => {
     fetchMembers();
-  }, []);
-
-  useEffect(() => {
-    fetchMembers();
-  }, []);
+  }, [fetchMembers]);
 
   useEffect(() => {
     if (editingMember) {
@@ -159,7 +156,7 @@ export function MembersList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingMember]);
 
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -176,9 +173,9 @@ export function MembersList() {
       toast({ title: "Error", description: "Failed to fetch members", variant: "destructive" });
     }
     setLoading(false);
-  };
+  }, [toast]);
 
-  const fetchMemberDonations = async (membersList: any[]) => {
+  const fetchMemberDonations = async (membersList: Member[]) => {
     try {
       const memberIds = membersList.map(m => m.id);
       const { data: donationsData, error } = await supabase
@@ -255,7 +252,7 @@ export function MembersList() {
     return publicUrlData.publicUrl;
   };
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: MemberFormData) => {
     try {
       setLoading(true);
       let profile_image_url = values.profile_image_url;
@@ -286,7 +283,7 @@ export function MembersList() {
     }
   };
 
-  const handleEditSubmit = async (values: any) => {
+  const handleEditSubmit = async (values: MemberFormData) => {
     try {
       setLoading(true);
       let profile_image_url = values.profile_image_url;

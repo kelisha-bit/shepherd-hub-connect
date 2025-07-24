@@ -9,25 +9,39 @@ const MOBILE_BREAKPOINT = 768
  * This ensures backward compatibility with existing components
  */
 export function useIsMobile() {
-  // Try to use the ResponsiveContext if available
+  // Always call useState and useEffect to maintain hook order
+  const [fallbackIsMobile, setFallbackIsMobile] = React.useState<boolean | undefined>(undefined)
+  const [useResponsiveContext, setUseResponsiveContext] = React.useState(true)
+  
+  // Always try to get the responsive context
+  let contextIsMobile: boolean | null = null;
   try {
     const { isMobile } = useResponsive()
-    return isMobile
+    contextIsMobile = isMobile
   } catch (error) {
-    // Fallback to the original implementation if ResponsiveContext is not available
-    // This ensures the hook works during the transition period
-    const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+    // If context is not available, we'll use fallback
+    if (useResponsiveContext) {
+      setUseResponsiveContext(false)
+    }
+  }
 
-    React.useEffect(() => {
+  // Always set up the fallback effect
+  React.useEffect(() => {
+    if (!useResponsiveContext) {
       const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
       const onChange = () => {
-        setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+        setFallbackIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
       }
       mql.addEventListener("change", onChange)
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      setFallbackIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
       return () => mql.removeEventListener("change", onChange)
-    }, [])
+    }
+  }, [useResponsiveContext])
 
-    return !!isMobile
+  // Return the appropriate value
+  if (useResponsiveContext && contextIsMobile !== null) {
+    return contextIsMobile
   }
+  
+  return !!fallbackIsMobile
 }
