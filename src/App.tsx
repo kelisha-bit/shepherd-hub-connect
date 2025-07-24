@@ -40,6 +40,7 @@ import FinancialSummaryReportPage from './pages/FinancialSummaryReportPage';
 import EventAnalyticsReportPage from './pages/EventAnalyticsReportPage';
 import { supabase } from "@/integrations/supabase/client";
 import React from "react";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 import SermonLibraryPage from "./pages/SermonLibraryPage";
 import PrayerRequestsPage from "./pages/PrayerRequestsPage";
@@ -103,15 +104,16 @@ const App = () => {
   console.log('App: Rendering App component');
   
   return (
-    <QueryClientProvider client={queryClient}>
-      <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
-        <AuthProvider>
-          <ResponsiveProvider>
-            <ThemeProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>
+            <ResponsiveProvider>
+              <ThemeProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
               <Routes>
               {/* Test route to check if routing works */}
                 <Route path="/test" element={<TestComponent />} />
@@ -328,13 +330,14 @@ const App = () => {
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
               </Routes>
-                </BrowserRouter>
-              </TooltipProvider>
-            </ThemeProvider>
-          </ResponsiveProvider>
-        </AuthProvider>
-      </NextThemesProvider>
-    </QueryClientProvider>
+                  </BrowserRouter>
+                </TooltipProvider>
+              </ThemeProvider>
+            </ResponsiveProvider>
+          </AuthProvider>
+        </NextThemesProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
