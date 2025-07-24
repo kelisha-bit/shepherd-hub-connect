@@ -16,16 +16,17 @@ interface PrayerRequest {
   id: string;
   title: string;
   description: string;
-  is_public: boolean;
-  status: 'pending' | 'in_progress' | 'answered';
+  is_private: boolean;
+  status: 'active' | 'answered';
   created_at: string;
+  requester_id: string;
 }
 
 export function PrayerRequestsList() {
   const [prayerRequests, setPrayerRequests] = useState<PrayerRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [newRequest, setNewRequest] = useState({ title: "", description: "", is_public: false });
+  const [newRequest, setNewRequest] = useState({ title: "", description: "", is_private: false });
   const [dialogOpen, setDialogOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -37,10 +38,20 @@ export function PrayerRequestsList() {
   const fetchPrayerRequests = async () => {
     try {
       setLoading(true);
+      
+      // First try to find member by email
+      const { data: memberData, error: memberError } = await supabase
+        .from("members")
+        .select("id")
+        .eq("email", user?.email)
+        .single();
+      
+      let memberId = memberData?.id || user?.id;
+      
       const { data, error } = await supabase
         .from("prayer_requests")
         .select("*")
-        .eq("member_id", user?.id)
+        .eq("requester_id", memberId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -67,21 +78,30 @@ export function PrayerRequestsList() {
         return;
       }
 
+      // Find member ID
+      const { data: memberData } = await supabase
+        .from("members")
+        .select("id")
+        .eq("email", user?.email)
+        .single();
+      
+      const memberId = memberData?.id || user?.id;
+
       const { data, error } = await supabase
         .from("prayer_requests")
         .insert([{
-          member_id: user?.id,
+          requester_id: memberId,
           title: newRequest.title,
           description: newRequest.description,
-          is_public: newRequest.is_public,
-          status: "pending"
+          is_private: newRequest.is_private,
+          status: "active"
         }])
         .select();
 
       if (error) throw error;
 
       setPrayerRequests([...(data || []), ...prayerRequests]);
-      setNewRequest({ title: "", description: "", is_public: false });
+      setNewRequest({ title: "", description: "", is_private: false });
       setDialogOpen(false);
       
       toast({
@@ -99,10 +119,8 @@ export function PrayerRequestsList() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "pending":
-        return <Badge variant="secondary">Pending</Badge>;
-      case "in_progress":
-        return <Badge variant="default">In Progress</Badge>;
+      case "active":
+        return <Badge variant="secondary">Active</Badge>;
       case "answered":
         return <Badge variant="success">Answered</Badge>;
       default:
@@ -157,8 +175,8 @@ export function PrayerRequestsList() {
               <div className="flex items-center space-x-2">
                 <Switch
                   id="is-public"
-                  checked={newRequest.is_public}
-                  onCheckedChange={(checked) => setNewRequest({ ...newRequest, is_public: checked })}
+                  checked={!newRequest.is_private}
+                  onCheckedChange={(checked) => setNewRequest({ ...newRequest, is_private: !checked })}
                 />
                 <Label htmlFor="is-public">Make this request visible to other members</Label>
               </div>
@@ -199,7 +217,7 @@ export function PrayerRequestsList() {
               <CardContent>
                 <p className="whitespace-pre-wrap">{request.description}</p>
                 <div className="mt-4 flex justify-between items-center">
-                  {request.is_public ? (
+                  {!request.is_private ? (
                     <Badge variant="outline">Public</Badge>
                   ) : (
                     <Badge variant="outline">Private</Badge>

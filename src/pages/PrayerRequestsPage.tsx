@@ -28,10 +28,19 @@ export default function PrayerRequestsPage() {
 
   const fetchPrayerRequests = async () => {
     try {
+      // Find member ID first
+      const { data: memberData } = await supabase
+        .from("members")
+        .select("id")
+        .eq("email", user?.email)
+        .maybeSingle();
+      
+      const memberId = memberData?.id || user?.id;
+      
       const { data, error } = await supabase
         .from("prayer_requests")
         .select("*")
-        .eq("requester_id", user?.id)  // Changed from member_id to requester_id
+        .eq("requester_id", memberId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -52,10 +61,19 @@ export default function PrayerRequestsPage() {
     setSubmitting(true);
     
     try {
+      // Find member ID
+      const { data: memberData } = await supabase
+        .from("members")
+        .select("id")
+        .eq("email", user?.email)
+        .maybeSingle();
+      
+      const memberId = memberData?.id || user?.id;
+      
       const { data, error } = await supabase
         .from("prayer_requests")
         .insert([{
-          requester_id: user?.id,  // Changed from member_id to requester_id
+          requester_id: memberId,
           title: newRequest.title,
           description: newRequest.description,
           is_private: newRequest.is_private,

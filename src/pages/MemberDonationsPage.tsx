@@ -32,12 +32,12 @@ export default function MemberDonationsPage() {
     console.log("MemberDonationsPage: Finding member ID for user:", user?.email);
     setMemberEmail(user?.email || null);
     
-    // First try to find member by email
+    // Try to find member by email first
     const { data: emailData, error: emailError } = await supabase
       .from("members")
       .select("id, email")
       .eq("email", user?.email)
-      .single();
+      .maybeSingle();
     
     console.log("MemberDonationsPage: Member by email:", emailData, "Error:", emailError);
     
@@ -52,7 +52,7 @@ export default function MemberDonationsPage() {
       .from("members")
       .select("id, email")
       .eq("id", user?.id)
-      .single();
+      .maybeSingle();
     
     console.log("MemberDonationsPage: Member by auth ID:", idData, "Error:", idError);
     

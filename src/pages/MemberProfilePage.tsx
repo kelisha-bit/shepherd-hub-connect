@@ -26,17 +26,60 @@ export default function MemberProfilePage() {
 
   const fetchProfile = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    
+    // Try to find member by email first
+    let { data, error } = await supabase
       .from("members")
       .select("*")
       .eq("email", user?.email)
-      .single();
+      .maybeSingle();
+    
     console.log("Profile fetch result:", { data, error });
-    if (error) {
-      toast({ title: "Error", description: "Could not fetch profile", variant: "destructive" });
-    } else {
-      setProfile(data);
+    
+    // If not found by email, try by auth ID
+    if (!data) {
+      const { data: idData, error: idError } = await supabase
+        .from("members")
+        .select("*")
+        .eq("id", user?.id)
+        .maybeSingle();
+      
+      if (idData) {
+        data = idData;
+        error = idError;
+      }
     }
+    
+    // If still no profile, create one
+    if (!data && user) {
+      console.log("Creating new member profile...");
+      const { data: newProfile, error: createError } = await supabase
+        .from("members")
+        .insert([{
+          id: user.id,
+          email: user.email || "",
+          first_name: user.user_metadata?.first_name || "New",
+          last_name: user.user_metadata?.last_name || "Member",
+          avatar_url: user.user_metadata?.avatar_url || null
+        }])
+        .select()
+        .single();
+      
+      if (createError) {
+        console.error("Error creating profile:", createError);
+        toast({ title: "Error", description: "Could not create profile", variant: "destructive" });
+      } else {
+        data = newProfile;
+        toast({ title: "Welcome!", description: "Your member profile has been created", variant: "default" });
+      }
+    }
+    
+    if (data) {
+      setProfile(data);
+    } else if (error) {
+      toast({ title: "Error", description: "Could not fetch profile", variant: "destructive" });
+    }
+    
     setLoading(false);
   };
 
@@ -46,56 +89,70 @@ export default function MemberProfilePage() {
 
   const handleSave = async () => {
     setLoading(true);
-    const { error } = await supabase
-      .from("members")
-      .update({
-        first_name: profile.first_name,
-        last_name: profile.last_name,
-        phone_number: profile.phone_number,
-        group: profile.group,
-        date_of_birth: profile.date_of_birth,
-        address: profile.address,
-        avatar_url: profile.avatar_url
-      })
-      .eq("id", profile.id);
     
-    // Also update the auth user's metadata
-    if (user) {
-      await supabase.auth.updateUser({
-        data: {
+    try {
+      const { error } = await supabase
+        .from("members")
+        .update({
           first_name: profile.first_name,
           last_name: profile.last_name,
+          phone_number: profile.phone_number,
+          group: profile.group,
+          date_of_birth: profile.date_of_birth,
+          address: profile.address,
           avatar_url: profile.avatar_url
-        }
-      });
-    }
-    
-    if (error) {
-      toast({ title: "Error", description: "Failed to update profile", variant: "destructive" });
-    } else {
+        })
+        .eq("id", profile.id);
+      
+      if (error) throw error;
+      
+      // Also update the auth user's metadata
+      if (user) {
+        await supabase.auth.updateUser({
+          data: {
+            first_name: profile.first_name,
+            last_name: profile.last_name,
+            avatar_url: profile.avatar_url
+          }
+        });
+      }
+      
       toast({ title: "Success", description: "Profile updated successfully" });
       setEdit(false);
+    } catch (error) {
+      console.error("Profile update error:", error);
+      toast({ title: "Error", description: "Failed to update profile", variant: "destructive" });
     }
+    
     setLoading(false);
   };
 
   const ensureBucketExists = async () => {
     try {
-      // Check if bucket exists
-      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
-      if (listError) throw listError;
-      
       const bucketName = 'profile-pictures';
-      const bucketExists = buckets.some(bucket => bucket.name === bucketName);
       
-      if (!bucketExists) {
-        // Create the bucket if it doesn't exist
+      // Try to get bucket info - if it fails, bucket doesn't exist
+      const { data: bucketData, error: bucketError } = await supabase.storage.getBucket(bucketName);
+      
+      if (bucketError && bucketError.message.includes('not found')) {
+        console.log('Creating profile-images bucket...');
+        // Bucket doesn't exist, create it
         const { error: createError } = await supabase.storage.createBucket(bucketName, {
           public: true,
-          allowedMimeTypes: ['image/*'],
-          fileSizeLimit: 5 * 1024 * 1024, // 5MB limit
+          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+          fileSizeLimit: 5242880, // 5MB
         });
-        if (createError) throw createError;
+        
+        if (createError) {
+          console.error('Error creating bucket:', createError);
+          throw createError;
+        }
+        console.log('Profile images bucket created successfully');
+      } else if (bucketError) {
+        console.error('Error checking bucket:', bucketError);
+        throw bucketError;
+      } else {
+        console.log('Profile images bucket already exists');
       }
       
       return true;

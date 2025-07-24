@@ -24,17 +24,26 @@ export default function SmallGroupsPage() {
 
   const fetchGroups = async () => {
     try {
+      // Find current user's member ID
+      const { data: memberData } = await supabase
+        .from("members")
+        .select("id")
+        .eq("email", user?.email)
+        .maybeSingle();
+      
+      const memberId = memberData?.id || user?.id;
+      
       // First, get all small groups with member count
       const { data: allGroups, error: groupsError } = await supabase
         .from('small_groups')
         .select(`
-          *,
-          group_members:small_group_members(count)
-        `);
+          *
+        `)
+        .eq('is_active', true);
 
       if (groupsError) throw groupsError;
 
-      // Then get all leaders' information in a single query
+      // Get leaders' information
       const leaderIds = allGroups?.map(g => g.leader_id).filter(Boolean) || [];
       const { data: leaders, error: leadersError } = leaderIds.length > 0 
         ? await supabase
@@ -48,10 +57,23 @@ export default function SmallGroupsPage() {
       // Create a map of leader_id to leader info for quick lookup
       const leaderMap = new Map(leaders?.map(leader => [leader.id, leader]) || []);
 
+      // Get member counts for each group
+      const { data: memberCounts, error: countError } = await supabase
+        .from("small_group_members")
+        .select("group_id")
+        .in("group_id", allGroups?.map(g => g.id) || []);
+
+      if (countError) throw countError;
+
+      const countMap = memberCounts?.reduce((acc, membership) => {
+        acc[membership.group_id] = (acc[membership.group_id] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>) || {};
+
       const { data: memberships, error: membershipError } = await supabase
         .from("small_group_members")
         .select("group_id")
-        .eq("member_id", user?.id);
+        .eq("member_id", memberId);
 
       if (membershipError) throw membershipError;
 
@@ -62,7 +84,7 @@ export default function SmallGroupsPage() {
         return {
           ...group,
           leader_name: leader ? `${leader.first_name} ${leader.last_name}` : "Unknown",
-          member_count: group.group_members?.[0]?.count || 0,
+          member_count: countMap[group.id] || 0,
           is_member: memberGroupIds.has(group.id)
         };
       }) || [];
@@ -82,11 +104,20 @@ export default function SmallGroupsPage() {
 
   const handleJoinGroup = async (groupId) => {
     try {
+      // Find member ID
+      const { data: memberData } = await supabase
+        .from("members")
+        .select("id")
+        .eq("email", user?.email)
+        .maybeSingle();
+      
+      const memberId = memberData?.id || user?.id;
+      
       const { error } = await supabase
         .from("small_group_members")
         .insert([{
           group_id: groupId,
-          member_id: user?.id,
+          member_id: memberId,
           role: "member"
         }]);
 
@@ -248,7 +279,7 @@ export default function SmallGroupsPage() {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <MapPin className="h-4 w-4" />
-                      <span>{group.location}</span>
+                      <span>{group.meeting_location || "Location TBD"}</span>
                     </div>
                   </CardContent>
                   <CardFooter>

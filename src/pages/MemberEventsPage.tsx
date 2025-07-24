@@ -40,16 +40,30 @@ export default function MemberEventsPage() {
   }, [memberId]);
 
   const findMemberId = async () => {
-    // Try to find member by email
+    // Try to find member by email first
     const { data: emailData } = await supabase
       .from("members")
       .select("id")
       .eq("email", user?.email)
-      .single();
+      .maybeSingle();
+      
     if (emailData) {
       setMemberId(emailData.id);
       return;
     }
+    
+    // Try by auth ID
+    const { data: idData } = await supabase
+      .from("members")
+      .select("id")
+      .eq("id", user?.id)
+      .maybeSingle();
+      
+    if (idData) {
+      setMemberId(idData.id);
+      return;
+    }
+    
     // Fallback to auth ID
     setMemberId(user?.id || null);
   };
@@ -75,15 +89,48 @@ export default function MemberEventsPage() {
 
   const handleRSVP = async (eventId: string) => {
     if (!memberId) return;
-    // Insert attendance record as RSVP
-    await supabase.from("attendance").insert({ event_id: eventId, member_id: memberId, present: false });
-    fetchAttendance();
+    
+    try {
+      // Insert attendance record as RSVP
+      const { error } = await supabase
+        .from("attendance")
+        .insert({ 
+          event_id: eventId, 
+          member_id: memberId, 
+          present: false,
+          attendance_date: new Date().toISOString().split('T')[0]
+        });
+      
+      if (error) {
+        console.error("RSVP error:", error);
+        return;
+      }
+      
+      fetchAttendance();
+    } catch (error) {
+      console.error("RSVP error:", error);
+    }
   };
 
   const handleUnRSVP = async (eventId: string) => {
     if (!memberId) return;
-    await supabase.from("attendance").delete().eq("event_id", eventId).eq("member_id", memberId);
-    fetchAttendance();
+    
+    try {
+      const { error } = await supabase
+        .from("attendance")
+        .delete()
+        .eq("event_id", eventId)
+        .eq("member_id", memberId);
+      
+      if (error) {
+        console.error("Un-RSVP error:", error);
+        return;
+      }
+      
+      fetchAttendance();
+    } catch (error) {
+      console.error("Un-RSVP error:", error);
+    }
   };
 
   const getRSVPStatus = (eventId: string) => {

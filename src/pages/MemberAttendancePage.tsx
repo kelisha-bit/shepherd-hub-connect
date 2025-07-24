@@ -29,12 +29,12 @@ export default function MemberAttendancePage() {
   const findMemberId = async () => {
     console.log("MemberAttendancePage: Finding member ID for user:", user?.email);
     
-    // First try to find member by email
+    // Try to find member by email first
     const { data: emailData, error: emailError } = await supabase
       .from("members")
       .select("id")
       .eq("email", user?.email)
-      .single();
+      .maybeSingle();
     
     console.log("MemberAttendancePage: Member by email:", emailData, "Error:", emailError);
     
@@ -49,7 +49,7 @@ export default function MemberAttendancePage() {
       .from("members")
       .select("id")
       .eq("id", user?.id)
-      .single();
+      .maybeSingle();
     
     console.log("MemberAttendancePage: Member by auth ID:", idData, "Error:", idError);
     

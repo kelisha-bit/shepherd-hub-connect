@@ -25,13 +25,26 @@ export default function MemberNotificationsPage() {
 
   const fetchCommunications = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("communications")
-      .select("*")
-      .eq("status", "sent")
-      .or("target_audience.eq.all,target_audience.eq.members")
-      .order("sent_date", { ascending: false });
-    setCommunications(data || []);
+    
+    try {
+      const { data, error } = await supabase
+        .from("communications")
+        .select("*")
+        .eq("status", "sent")
+        .or("target_audience.eq.all,target_audience.eq.members")
+        .order("sent_date", { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching communications:", error);
+        setCommunications([]);
+      } else {
+        setCommunications(data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching communications:", error);
+      setCommunications([]);
+    }
+    
     setLoading(false);
   };
 

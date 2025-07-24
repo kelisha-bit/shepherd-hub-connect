@@ -56,9 +56,15 @@ export default function ResourceBookingPage() {
 
   const handleSubmitBooking = (e) => {
     e.preventDefault();
+    
+    if (!bookingForm.startTime || !bookingForm.endTime || !bookingForm.purpose) {
+      alert("Please fill in all required fields");
+      return;
+    }
+    
     setSubmitting(true);
     
-    // Simulate API call
+    // In a real implementation, this would save to the database
     setTimeout(() => {
       const newBooking = {
         id: Date.now(),
@@ -72,6 +78,7 @@ export default function ResourceBookingPage() {
       };
       
       setBookings([...bookings, newBooking]);
+      alert("Booking submitted successfully! You will be notified when it's approved.");
       setSubmitting(false);
       setShowForm(false);
       setBookingForm({

@@ -13,7 +13,7 @@ interface Sermon {
   id: string;
   title: string;
   preacher: string;
-  sermon_date: string;
+  date: string;
   description: string;
   scripture_reference: string;
   audio_url: string;
@@ -41,7 +41,7 @@ export function SermonLibrary() {
       const { data, error } = await supabase
         .from("sermons")
         .select("*")
-        .order("sermon_date", { ascending: false });
+        .order("date", { ascending: false });
 
       if (error) throw error;
       setSermons(data || []);
@@ -125,7 +125,7 @@ export function SermonLibrary() {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  <span>{new Date(sermon.sermon_date).toLocaleDateString()}</span>
+                  <span>{new Date(sermon.date).toLocaleDateString()}</span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">

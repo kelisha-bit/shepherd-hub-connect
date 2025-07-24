@@ -11,7 +11,7 @@ interface SermonPlayerProps {
     id: string;
     title: string;
     preacher: string;
-    sermon_date: string;
+    date: string;
     scripture_reference?: string;
     category?: string;
     audio_url: string;
@@ -113,7 +113,7 @@ export function SermonPlayer({ sermon, isOpen, onOpenChange }: SermonPlayerProps
           <div className="flex flex-col space-y-1.5">
             <p className="text-sm font-medium">{sermon.preacher}</p>
             <p className="text-sm text-muted-foreground">
-              {new Date(sermon.sermon_date).toLocaleDateString()}
+              {new Date(sermon.date).toLocaleDateString()}
             </p>
             {sermon.scripture_reference && (
               <p className="text-sm">Scripture: {sermon.scripture_reference}</p>
