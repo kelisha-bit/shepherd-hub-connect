@@ -19,6 +19,7 @@ export default function SmallGroupsPage() {
 
   useEffect(() => {
     fetchGroups();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchGroups = async () => {
@@ -46,8 +47,6 @@ export default function SmallGroupsPage() {
 
       // Create a map of leader_id to leader info for quick lookup
       const leaderMap = new Map(leaders?.map(leader => [leader.id, leader]) || []);
-
-      if (groupsError) throw groupsError;
 
       const { data: memberships, error: membershipError } = await supabase
         .from("small_group_members")
@@ -91,19 +90,41 @@ export default function SmallGroupsPage() {
           role: "member"
         }]);
 
-      if (error) throw error;
+      if (error) {
+        // Robustly check for 409 conflict (already a member)
+        const isConflict = error.code === "23505" || error.status === 409 || error.statusCode === 409 || error.message?.toLowerCase().includes("duplicate") || error.message?.toLowerCase().includes("conflict") || error.details?.toLowerCase().includes("duplicate") || error.details?.toLowerCase().includes("conflict");
+        if (isConflict) {
+          toast({
+            title: "Already a member",
+            description: "You have already joined this group.",
+            variant: "destructive",
+          });
+          return;
+        }
+        console.error("Supabase join group error:", error);
+        throw error;
+      }
 
       setGroups(groups.map(group =>
         group.id === groupId
           ? { ...group, is_member: true, member_count: group.member_count + 1 }
           : group
       ));
+      setMyGroups(prev => [
+        ...prev,
+        ...groups.filter(group => group.id === groupId).map(group => ({
+          ...group,
+          is_member: true,
+          member_count: group.member_count + 1
+        }))
+      ]);
 
       toast({
         title: "Success",
         description: "Successfully joined the group",
       });
     } catch (error) {
+      console.error("Join group error (catch block):", error);
       toast({
         title: "Error",
         description: "Failed to join group",

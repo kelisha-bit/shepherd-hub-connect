@@ -40,16 +40,13 @@ import FinancialSummaryReportPage from './pages/FinancialSummaryReportPage';
 import EventAnalyticsReportPage from './pages/EventAnalyticsReportPage';
 import { supabase } from "@/integrations/supabase/client";
 import React from "react";
+
 import SermonLibraryPage from "./pages/SermonLibraryPage";
 import PrayerRequestsPage from "./pages/PrayerRequestsPage";
 import SmallGroupsPage from "./pages/SmallGroupsPage";
 
-const queryClient = new QueryClient();
-
-// Simple test component to check if the issue is with routing
+// TestComponent definition (fixed)
 const TestComponent = () => {
-  console.log('TestComponent: Rendering test component');
-  
   // Test Supabase connection
   const testSupabase = async () => {
     try {
@@ -100,6 +97,8 @@ const TestComponent = () => {
   );
 };
 
+const queryClient = new QueryClient();
+
 const App = () => {
   console.log('App: Rendering App component');
   
@@ -120,6 +119,18 @@ const App = () => {
                 <Route path="/responsive-demo" element={<ResponsiveDemo />} />
                 {/* Theme demo page */}
                 <Route path="/theme-demo" element={<ThemeDemo />} />
+                
+                {/* Small Groups Page */}
+                <Route 
+                  path="/small-groups" 
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <SmallGroupsPage />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } 
+                />
               
               <Route path="/auth" element={<Auth />} />
               <Route 
