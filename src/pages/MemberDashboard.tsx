@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { DollarSign, Calendar, Users, CheckCircle, TrendingUp, Bell } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -73,7 +74,7 @@ export default function MemberDashboard() {
             email: user?.email || "",
             first_name: user?.user_metadata?.first_name || "New",
             last_name: user?.user_metadata?.last_name || "Member",
-            avatar_url: user?.user_metadata?.avatar_url || null
+            profile_image_url: user?.user_metadata?.avatar_url || null
           }])
           .select()
           .single();
@@ -168,7 +169,8 @@ export default function MemberDashboard() {
     
     // Calculate attendance stats for each group (simplified)
     const groupStats = groupsData.map(group => ({
-      group: group.name,
+      // Fix the type issue by using type assertion or optional chaining with default value
+      group: (group as any)?.name || "Unknown Group",
       percent: Math.floor(Math.random() * 100) // Placeholder - would calculate real attendance
     }));
     
@@ -267,7 +269,11 @@ export default function MemberDashboard() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <p className="text-muted-foreground">Unable to load member profile.</p>
-          <Button onClick={() => window.location.reload()}>
+          <Button 
+            variant="default" 
+            onClick={() => window.location.reload()}
+            className="mt-2"
+          >
             Retry
           </Button>
         </div>
@@ -282,7 +288,11 @@ export default function MemberDashboard() {
         {/* Profile Card */}
         <Card className="rounded-2xl shadow-lg p-6 flex flex-col md:flex-row items-center gap-6 bg-gradient-to-tr from-indigo-600 via-purple-500 to-blue-400 text-white">
           <Avatar className="h-28 w-28 shadow-lg">
-            <AvatarImage src={profile?.profile_image_url || undefined} />
+            <AvatarImage 
+              src={profile?.profile_image_url || user?.user_metadata?.avatar_url || undefined} 
+              alt={`${profile?.first_name} ${profile?.last_name}`}
+              onError={() => console.log("Avatar image failed to load in dashboard")}
+            />
             <AvatarFallback className="bg-white/20 text-white font-bold text-3xl">
               {profile ? `${profile.first_name?.[0] || ""}${profile.last_name?.[0] || ""}`.toUpperCase() : "U"}
             </AvatarFallback>

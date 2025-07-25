@@ -5,9 +5,42 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/components/auth/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function MemberPortal() {
   const { user } = useAuth();
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (user?.email) {
+      fetchProfileImage();
+    }
+  }, [user]);
+
+  const fetchProfileImage = async () => {
+    try {
+      console.log("MemberPortal: Fetching profile image for user:", user?.email);
+      
+      const { data: memberData, error: memberError } = await supabase
+        .from("members")
+        .select("profile_image_url")
+        .eq("email", user?.email)
+        .maybeSingle();
+      
+      if (!memberError && memberData) {
+        const imageUrl = memberData.profile_image_url || null;
+        console.log("MemberPortal: Setting profile image URL:", imageUrl);
+        setProfileImageUrl(imageUrl);
+      } else {
+        console.log("MemberPortal: No profile data found");
+        setProfileImageUrl(null);
+      }
+    } catch (error) {
+      console.error("MemberPortal: Error fetching profile image:", error);
+      setProfileImageUrl(null);
+    }
+  };
   
   const userInitials = user?.user_metadata?.first_name && user?.user_metadata?.last_name
     ? `${user.user_metadata.first_name[0]}${user.user_metadata.last_name[0]}`
@@ -17,6 +50,20 @@ export default function MemberPortal() {
     ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
     : user?.email || "Member";
 
+  // Determine the best avatar URL to use
+  const avatarUrl = profileImageUrl || 
+                   user?.user_metadata?.avatar_url || 
+                   user?.user_metadata?.picture;
+
+  // Add debugging for avatar URL
+  useEffect(() => {
+    console.log("MemberPortal: Avatar URL analysis:");
+    console.log("  profileImageUrl:", profileImageUrl);
+    console.log("  user?.user_metadata?.avatar_url:", user?.user_metadata?.avatar_url);
+    console.log("  user?.user_metadata?.picture:", user?.user_metadata?.picture);
+    console.log("  Final avatarUrl:", avatarUrl);
+  }, [profileImageUrl, user, avatarUrl]);
+
   return (
     <div className="min-h-screen flex flex-col items-center p-8">
       {/* Profile Section */}
@@ -25,7 +72,7 @@ export default function MemberPortal() {
           <div className="relative group">
             <Avatar className="h-24 w-24 border-2 border-primary">
               <AvatarImage 
-                src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture} 
+                src={avatarUrl} 
                 alt={userName} 
               />
               <AvatarFallback className="text-2xl bg-primary/10">
@@ -37,8 +84,11 @@ export default function MemberPortal() {
               size="icon" 
               className="absolute -bottom-2 -right-2 rounded-full w-8 h-8"
               title="Update profile picture"
+              asChild
             >
-              <Pencil className="h-4 w-4" />
+              <Link to="/member/profile">
+                <Pencil className="h-4 w-4" />
+              </Link>
             </Button>
           </div>
           

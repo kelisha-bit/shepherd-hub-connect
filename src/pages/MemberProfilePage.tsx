@@ -100,7 +100,7 @@ export default function MemberProfilePage() {
           group: profile.group,
           date_of_birth: profile.date_of_birth,
           address: profile.address,
-          avatar_url: profile.avatar_url
+          profile_image_url: profile.profile_image_url  // Only update profile_image_url
         })
         .eq("id", profile.id);
       
@@ -112,7 +112,7 @@ export default function MemberProfilePage() {
           data: {
             first_name: profile.first_name,
             last_name: profile.last_name,
-            avatar_url: profile.avatar_url
+            avatar_url: profile.profile_image_url  // Store in auth metadata as avatar_url
           }
         });
       }
@@ -134,23 +134,28 @@ export default function MemberProfilePage() {
       // Try to get bucket info - if it fails, bucket doesn't exist
       const { data: bucketData, error: bucketError } = await supabase.storage.getBucket(bucketName);
       
-      if (bucketError && bucketError.message.includes('not found')) {
-        console.log('Creating profile-images bucket...');
-        // Bucket doesn't exist, create it
-        const { error: createError } = await supabase.storage.createBucket(bucketName, {
-          public: true,
-          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-          fileSizeLimit: 5242880, // 5MB
-        });
-        
-        if (createError) {
-          console.error('Error creating bucket:', createError);
-          throw createError;
+      if (bucketError) {
+        // Check if error is due to bucket not existing
+        if (bucketError.message.includes('not found')) {
+          console.log('Creating profile-images bucket...');
+          // Bucket doesn't exist, create it
+          const { error: createError } = await supabase.storage.createBucket(bucketName, {
+            public: true,
+            allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+            fileSizeLimit: 5242880, // 5MB
+          });
+          
+          if (createError) {
+            console.error('Error creating bucket:', createError);
+            // Instead of throwing error, return false to indicate failure
+            return false;
+          }
+          console.log('Profile images bucket created successfully');
+        } else {
+          // Other error with bucket check
+          console.error('Error checking bucket:', bucketError);
+          return false;
         }
-        console.log('Profile images bucket created successfully');
-      } else if (bucketError) {
-        console.error('Error checking bucket:', bucketError);
-        throw bucketError;
       } else {
         console.log('Profile images bucket already exists');
       }
@@ -158,7 +163,7 @@ export default function MemberProfilePage() {
       return true;
     } catch (error) {
       console.error('Error ensuring bucket exists:', error);
-      throw error;
+      return false;
     }
   };
 
@@ -190,7 +195,16 @@ export default function MemberProfilePage() {
       setUploading(true);
       
       // Ensure bucket exists
-      await ensureBucketExists();
+      const bucketExists = await ensureBucketExists();
+      if (!bucketExists) {
+        toast({
+          title: "Storage error",
+          description: "Could not access or create storage bucket. Please try again later.",
+          variant: "destructive"
+        });
+        setUploading(false);
+        return;
+      }
       
       const fileExt = file.name.split('.').pop();
       const fileName = `${user?.id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
@@ -206,7 +220,30 @@ export default function MemberProfilePage() {
         
       if (uploadError) {
         console.error('Upload error details:', uploadError);
-        throw new Error(uploadError.message);
+        
+        // Provide more specific error messages based on error type
+        if (uploadError.message.includes('permission')) {
+          toast({
+            title: "Permission denied",
+            description: "You don't have permission to upload files. Please contact support.",
+            variant: "destructive"
+          });
+        } else if (uploadError.message.includes('size')) {
+          toast({
+            title: "File too large",
+            description: "The file exceeds the maximum allowed size.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Upload failed",
+            description: uploadError.message || "Failed to upload profile picture",
+            variant: "destructive"
+          });
+        }
+        
+        setUploading(false);
+        return;
       }
       
       // Get the public URL
@@ -215,10 +252,23 @@ export default function MemberProfilePage() {
         .getPublicUrl(filePath);
       
       // Update the profile with the new avatar URL
-      await supabase
+      const { error: updateError } = await supabase
         .from('members')
-        .update({ avatar_url: publicUrl })
+        .update({ 
+          profile_image_url: publicUrl  // Only update profile_image_url field
+        })
         .eq('id', profile.id);
+        
+      if (updateError) {
+        console.error('Error updating profile with new avatar:', updateError);
+        toast({
+          title: "Update failed",
+          description: "Image uploaded but failed to update profile. Please try again.",
+          variant: "destructive"
+        });
+        setUploading(false);
+        return;
+      }
       
       // Also update the auth user's metadata
       if (user) {
@@ -228,7 +278,10 @@ export default function MemberProfilePage() {
       }
       
       // Update local state
-      setProfile({ ...profile, avatar_url: publicUrl });
+      setProfile({ 
+        ...profile, 
+        profile_image_url: publicUrl  // Only update profile_image_url in local state
+      });
       
       toast({
         title: "Success",
@@ -279,8 +332,9 @@ export default function MemberProfilePage() {
             <div className="relative group">
               <Avatar className="h-32 w-32 border-2 border-primary">
                 <AvatarImage 
-                  src={profile?.avatar_url || user?.user_metadata?.avatar_url} 
-                  alt={`${profile?.first_name} ${profile?.last_name}`} 
+                  src={profile?.profile_image_url || user?.user_metadata?.avatar_url} 
+                  alt={`${profile?.first_name} ${profile?.last_name}`}
+                  onError={() => console.log("Avatar image failed to load in profile page")}
                 />
                 <AvatarFallback className="text-4xl bg-primary/10">
                   {userInitials}

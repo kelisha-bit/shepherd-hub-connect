@@ -21,13 +21,36 @@ Avatar.displayName = AvatarPrimitive.Root.displayName
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn("aspect-square h-full w-full", className)}
-    {...props}
-  />
-))
+>(({ className, src, alt, onError, ...props }, ref) => {
+  
+  // Add debugging for avatar image loading
+  const handleError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.warn(`Avatar image failed to load: ${src}`);
+    console.warn('Error event:', event);
+    if (onError) {
+      onError(event);
+    }
+  };
+
+  const handleLoad = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.log(`Avatar image loaded successfully: ${src}`);
+    if (props.onLoad) {
+      props.onLoad(event);
+    }
+  };
+
+  return (
+    <AvatarPrimitive.Image
+      ref={ref}
+      className={cn("aspect-square h-full w-full", className)}
+      src={src}
+      alt={alt}
+      onError={handleError}
+      onLoad={handleLoad}
+      {...props}
+    />
+  );
+});
 AvatarImage.displayName = AvatarPrimitive.Image.displayName
 
 const AvatarFallback = React.forwardRef<

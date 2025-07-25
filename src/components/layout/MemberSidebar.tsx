@@ -19,8 +19,6 @@ const menuItems = [
   { title: "Attendance", url: "/member/attendance", icon: Calendar },
   { title: "Donations", url: "/member/donations", icon: DollarSign },
   { title: "Events", url: "/member/events", icon: Calendar },
-  { title: "Communications", url: "/member/communications", icon: MessageSquare },
-  { title: "Resources", url: "/member/resources", icon: Bookmark },
   { title: "Sermons", url: "/member/sermons", icon: BookOpen },
   { title: "Prayer Requests", url: "/member/prayer-requests", icon: HandHeart },
   { title: "Small Groups", url: "/member/small-groups", icon: Users },

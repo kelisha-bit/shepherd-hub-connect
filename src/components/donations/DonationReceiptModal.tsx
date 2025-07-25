@@ -5,7 +5,38 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import QRCode from "react-qr-code";
 import { useReactToPrint } from "react-to-print";
 import { Crown, Gift, CalendarHeart } from "lucide-react";
-import type { Database } from "@/integrations/supabase/types";
+// Remove the Database import and define types directly
+// import type { Database } from "@/integrations/supabase/types";
+
+// Define donation and member types directly
+type Donation = {
+  id: string;
+  created_at?: string;
+  updated_at?: string;
+  donation_date: string;
+  amount: number;
+  donation_type: string;
+  payment_method: string;
+  donor_name?: string;
+  donor_email?: string;
+  donor_phone?: string;
+  member_id?: string;
+  reference_number?: string;
+  notes?: string;
+  status?: string;
+};
+
+type Member = {
+  id: string;
+  created_at?: string;
+  updated_at?: string;
+  first_name: string;
+  last_name: string;
+  email?: string | null;
+  phone_number?: string | null;
+  avatar_url?: string | null;
+  date_of_birth?: string | null;
+};
 
 const mockChurch = {
   name: "Greater Works City Church Int.",
@@ -27,8 +58,7 @@ export function DonationReceiptModal({ donationId, open, onOpenChange, church = 
   church?: any;
   topDonorName?: string;
 }) {
-  type Donation = Database["public"]["Tables"]["donations"]["Row"];
-  type Member = Database["public"]["Tables"]["members"]["Row"];
+  // Updated to use the locally defined types
   const [donation, setDonation] = useState<Donation | null>(null);
   const [loading, setLoading] = useState(true);
   const [member, setMember] = useState<Member | null>(null);
