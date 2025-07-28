@@ -22,6 +22,7 @@ const menuItems = [
   { title: "Sermons", url: "/member/sermons", icon: BookOpen },
   { title: "Prayer Requests", url: "/member/prayer-requests", icon: HandHeart },
   { title: "Small Groups", url: "/member/small-groups", icon: Users },
+  { title: "Messages", url: "/communications", icon: MessageSquare },
   { title: "Notifications", url: "/member/notifications", icon: Bell, badge: 3 },
 ];
 

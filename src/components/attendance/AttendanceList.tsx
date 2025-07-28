@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Calendar, Users, CheckCircle, XCircle, Pencil } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { AttendanceModal } from "./AttendanceModal";
 import { useCallback } from "react";
@@ -22,6 +23,7 @@ interface AttendanceRecord {
     first_name: string;
     last_name: string;
     group?: string;
+    profile_image_url?: string;
   };
   events?: {
     title: string;
@@ -84,7 +86,7 @@ export function AttendanceList() {
         .from("attendance")
         .select(`
           *,
-          members (first_name, last_name, group),
+          members (first_name, last_name, group, profile_image_url),
           events (title, event_type)
         `)
         .order("attendance_date", { ascending: false });
@@ -215,8 +217,7 @@ export function AttendanceList() {
     <div className="space-y-6">
       {/* Analytics Section */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <>
-          {/* Service Type Attendance Bar Chart */}
+        {/* Service Type Attendance Bar Chart */}
           <Card>
             <CardHeader>
               <CardTitle>Attendance by Service Type (Monthly)</CardTitle>
@@ -275,7 +276,6 @@ export function AttendanceList() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-        </>
       </div>
       <AttendanceModal
         open={modalOpen}
@@ -371,56 +371,64 @@ export function AttendanceList() {
 
       <div className="grid gap-4">
         {filteredAttendance.map((record) => (
-          <Card key={record.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
+        <Card key={record.id}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage
+                    src={record.members?.profile_image_url || undefined}
+                    alt={record.members ? `${record.members.first_name} ${record.members.last_name}` : "Member Avatar"}
+                  />
+                  <AvatarFallback>
+                    {record.members ? `${record.members.first_name[0] || ''}${record.members.last_name[0] || ''}`.toUpperCase() : "?"}
+                  </AvatarFallback>
+                </Avatar>
                 <CardTitle className="text-lg">
                   {record.members 
                     ? `${record.members.first_name} ${record.members.last_name}`
                     : "Unknown Member"
                   }
                 </CardTitle>
-                <div className="flex gap-2 items-center">
-                  <Badge variant={record.present ? "default" : "destructive"}>
-                    {record.present ? "Present" : "Absent"}
-                  </Badge>
-                  <Button size="icon" variant="ghost" onClick={() => handleEdit(record)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                </div>
               </div>
-              <div className="flex gap-2">
-                <Badge variant="outline">
-                  {record.events?.event_type || "Unknown Event Type"}
+              <div className="flex gap-2 items-center">
+                <Badge variant={record.present ? "default" : "destructive"}>
+                  {record.present ? "Present" : "Absent"}
                 </Badge>
+                <Button size="icon" variant="ghost" onClick={() => handleEdit(record)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <span>{new Date(record.attendance_date).toLocaleDateString()}</span>
+            </div>
+            <div className="flex gap-2 mt-2">
+              <Badge variant="outline">
+                {record.events?.event_type || "Unknown Event Type"}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span>{new Date(record.attendance_date).toLocaleDateString()}</span>
+            </div>
+            <div className="text-sm">
+              <span className="font-medium">Event: </span>
+              {record.events?.title || "Unknown Event"}
+            </div>
+            {record.notes && (
+              <div className="text-sm bg-muted p-2 rounded">
+                {record.notes}
               </div>
-              
-              <div className="text-sm">
-                <span className="font-medium">Event: </span>
-                {record.events?.title || "Unknown Event"}
-              </div>
-              
-              {record.notes && (
-                <div className="text-sm bg-muted p-2 rounded">
-                  {record.notes}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
         ))}
+        {filteredAttendance.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No attendance records found</p>
+          </div>
+        )}
       </div>
-
-      {filteredAttendance.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No attendance records found</p>
-        </div>
-      )}
     </div>
   );
 }

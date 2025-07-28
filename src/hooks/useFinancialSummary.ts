@@ -45,16 +45,21 @@ export function useFinancialSummary(timeRange: string = '12m') {
         // Fetch donations (income)
         const { data: donations, error: donationsError } = await supabase
           .from('donations')
-          .select('amount, donation_date, category, donor_name, donor_email, member_id')
+          .select('amount, donation_date, donation_type, donor_name, donor_email, member_id')
           .gte('donation_date', startDate.toISOString().slice(0, 10))
           .order('donation_date');
 
         if (donationsError) throw donationsError;
 
-        // Fetch expenses
+        // Fetch expenses with category information
         const { data: expenses, error: expensesError } = await supabase
           .from('expenses')
-          .select('amount, expense_date, category')
+          .select(`
+            amount, 
+            expense_date, 
+            category_id,
+            expense_categories(name)
+          `)
           .gte('expense_date', startDate.toISOString().slice(0, 10))
           .order('expense_date');
 
@@ -110,7 +115,7 @@ export function useFinancialSummary(timeRange: string = '12m') {
         let totalIncome = 0;
         
         donations?.forEach(donation => {
-          const category = donation.category || 'Uncategorized';
+          const category = donation.donation_type || 'Uncategorized';
           incomeCategories[category] = (incomeCategories[category] || 0) + Number(donation.amount);
           totalIncome += Number(donation.amount);
         });
@@ -120,7 +125,7 @@ export function useFinancialSummary(timeRange: string = '12m') {
         let totalExpenses = 0;
         
         expenses?.forEach(expense => {
-          const category = expense.category || 'Uncategorized';
+          const category = expense.expense_categories?.name || 'Uncategorized';
           expenseCategories[category] = (expenseCategories[category] || 0) + Number(expense.amount);
           totalExpenses += Number(expense.amount);
         });

@@ -6,11 +6,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Download, Calendar, Users, TrendingUp, CalendarCheck, CalendarDays } from "lucide-react";
 import { useEventAnalytics } from "@/hooks/useEventAnalytics";
-import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, ComposedChart } from "recharts";
 
 export function EventAnalyticsReport() {
   const [timeRange, setTimeRange] = useState<string>("12m");
-  const { periodData, eventsByType, topEvents, attendanceByDayOfWeek, summary, loading, error } = useEventAnalytics(timeRange);
+  const { periodData, eventTypeBreakdown, topEvents, summary, loading, error } = useEventAnalytics(timeRange);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d'];
   const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -143,7 +143,7 @@ export function EventAnalyticsReport() {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={eventsByType}
+                    data={eventTypeBreakdown}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -152,7 +152,7 @@ export function EventAnalyticsReport() {
                     fill="#8884d8"
                     dataKey="count"
                   >
-                    {eventsByType.map((entry, index) => (
+                    {eventTypeBreakdown.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -163,33 +163,7 @@ export function EventAnalyticsReport() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Attendance by Day of Week</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <Skeleton className="h-[300px] w-full" />
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={attendanceByDayOfWeek}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="day" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => [value, 'Attendance']} />
-                  <Bar dataKey="attendance" fill="#8884d8">
-                    {attendanceByDayOfWeek.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
+
       </div>
 
       {/* Top Events */}
@@ -221,7 +195,7 @@ export function EventAnalyticsReport() {
                           <p className="text-sm text-muted-foreground">
                             <Badge variant="outline" className="mr-2">
                               <Calendar className="mr-1 h-3 w-3" />
-                              {event.type}
+                              {event.eventType}
                             </Badge>
                             {new Date(event.date).toLocaleDateString()}
                           </p>
@@ -229,7 +203,7 @@ export function EventAnalyticsReport() {
                       </div>
                       <div className="font-semibold">
                         <Users className="inline mr-1 h-4 w-4" />
-                        {event.attendance}
+                        {event.attendanceCount}
                       </div>
                     </div>
                   ))}
@@ -265,14 +239,10 @@ export function EventAnalyticsReport() {
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Average Events per Month:</span>
-                  <span className="font-semibold">{summary.averageEventsPerMonth.toFixed(1)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Most Active Day:</span>
+                  <span className="text-sm font-medium">Most Popular Event Type:</span>
                   <Badge variant="outline" className="bg-primary/10">
-                    <CalendarDays className="mr-1 h-3 w-3" />
-                    {summary.mostActiveDay}
+                    <CalendarCheck className="mr-1 h-3 w-3" />
+                    {summary.mostPopularEventType}
                   </Badge>
                 </div>
               </div>
@@ -280,18 +250,12 @@ export function EventAnalyticsReport() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Highest Attendance:</span>
-                  <span className="font-semibold">{summary.highestAttendance}</span>
+                  <span className="font-semibold">{summary.highestAttendanceCount}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Attendance Growth:</span>
-                  <span className={`font-semibold ${summary.attendanceGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {summary.attendanceGrowth >= 0 ? '+' : ''}{summary.attendanceGrowth}%
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Event with Highest Attendance:</span>
-                  <span className="font-semibold truncate max-w-[180px]" title={summary.eventWithHighestAttendance}>
-                    {summary.eventWithHighestAttendance}
+                  <span className="text-sm font-medium">Highest Attendance Date:</span>
+                  <span className="font-semibold">
+                    {summary.highestAttendanceDate ? new Date(summary.highestAttendanceDate).toLocaleDateString() : 'N/A'}
                   </span>
                 </div>
               </div>
@@ -314,13 +278,13 @@ export function EventAnalyticsReport() {
             </div>
           ) : (
             <div className="space-y-4">
-              {eventsByType.map((type, index) => (
+              {eventTypeBreakdown.map((type, index) => (
                 <div key={index} className="space-y-1">
                   <div className="flex justify-between items-center">
                     <span className="font-medium">{type.name}</span>
                     <div>
                       <span className="text-primary font-semibold mr-2">{type.count} events</span>
-                      <span className="text-muted-foreground">{type.attendance} attendees</span>
+                      <span className="text-muted-foreground">{type.attendanceCount} attendees</span>
                     </div>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -339,6 +303,3 @@ export function EventAnalyticsReport() {
     </div>
   );
 }
-
-// Import ComposedChart from recharts
-import { ComposedChart } from 'recharts';

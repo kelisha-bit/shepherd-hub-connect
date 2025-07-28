@@ -18,6 +18,8 @@ import {
   Target,
   Smartphone,
   Palette,
+  Bell,
+  Hash,
 } from "lucide-react";
 
 import {
@@ -40,16 +42,28 @@ const menuItems = [
   { title: "Members", url: "/members", icon: Users },
   { title: "Visitors", url: "/visitors", icon: UserPlus },
   { title: "Donations", url: "/donations", icon: DollarSign },
-  { title: "Attendance", url: "/attendance", icon: UserCheck },
   { title: "Events", url: "/events", icon: Calendar },
-  { title: "Communications", url: "/communications", icon: MessageSquare },
   { title: "Reports", url: "/reports", icon: BarChart3 },
-  { title: "Responsive Demo", url: "/responsive-demo", icon: Smartphone },
-  { title: "Theme Demo", url: "/theme-demo", icon: Palette },
+];
+
+const attendanceItems = [
+  { title: "Individual Attendance", url: "/attendance", icon: UserCheck },
+  { title: "Event Count", url: "/attendance/count", icon: Hash },
+];
+
+const communicationItems = [
+  { title: "Communication Center", url: "/communication", icon: MessageSquare },
+  { title: "Announcements", url: "/announcements", icon: Bell },
+  { title: "Message History", url: "/communications", icon: FileText },
 ];
 
 const settingsItems = [
   { title: "Settings", url: "/settings", icon: Settings },
+];
+
+const demoItems = [
+  { title: "Responsive Demo", url: "/responsive-demo", icon: Smartphone },
+  { title: "Theme Demo", url: "/theme-demo", icon: Palette },
 ];
 
 const financeItems = [
@@ -115,6 +129,42 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Attendance</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {attendanceItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} end className={getNavClass}>
+                      <item.icon className="h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Communication</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {communicationItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} end className={getNavClass}>
+                      <item.icon className="h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 

@@ -42,6 +42,26 @@ export default function AttendanceScreen() {
   const [isConnected, setIsConnected] = useState(true);
   const insets = useSafeAreaInsets();
 
+  // Event Count States
+  const [activeTab, setActiveTab] = useState('individual'); // 'individual' or 'count'
+  const [attendanceCounts, setAttendanceCounts] = useState<any[]>([]);
+  const [countModalVisible, setCountModalVisible] = useState(false);
+  const [countForm, setCountForm] = useState({
+    event_id: '',
+    attendance_date: new Date().toISOString().slice(0, 10),
+    total_count: 0,
+    members_count: 0,
+    visitors_count: 0,
+    adults_count: 0,
+    children_count: 0,
+    notes: ''
+  });
+  const [countShowDatePicker, setCountShowDatePicker] = useState(false);
+  const [countSubmitting, setCountSubmitting] = useState(false);
+  const [countError, setCountError] = useState('');
+  const [countSuccess, setCountSuccess] = useState(false);
+  const [editingCountId, setEditingCountId] = useState(null);
+
   // Network status effect
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
@@ -95,10 +115,37 @@ export default function AttendanceScreen() {
     setEvents(eventsData || []);
   }, []);
 
+  // Fetch attendance counts
+  const fetchAttendanceCounts = useCallback(async () => {
+    if (isConnected) {
+      const { data, error } = await supabase
+        .from('event_attendance_counts')
+        .select(`
+          *,
+          events (title, event_type)
+        `)
+        .order('attendance_date', { ascending: false });
+      if (!error) {
+        setAttendanceCounts(data || []);
+      }
+    }
+  }, [isConnected]);
+
   useEffect(() => {
     fetchAttendance();
     fetchMembersAndEvents();
-  }, [fetchAttendance, fetchMembersAndEvents]);
+    if (activeTab === 'count') {
+      fetchAttendanceCounts();
+    }
+  }, [fetchAttendance, fetchMembersAndEvents, fetchAttendanceCounts, activeTab]);
+
+  // Auto-calculate total when breakdown numbers change
+  useEffect(() => {
+    const calculatedTotal = countForm.members_count + countForm.visitors_count;
+    if (calculatedTotal !== countForm.total_count) {
+      setCountForm(prev => ({ ...prev, total_count: calculatedTotal }));
+    }
+  }, [countForm.members_count, countForm.visitors_count]);
 
   const getMemberName = (record) => {
     if (record.members) {
@@ -313,12 +360,105 @@ export default function AttendanceScreen() {
 
   // Delete attendance
   const handleDeleteAttendance = (id) => {
-    Alert.alert('Delete Attendance', 'Are you sure you want to delete this record?', [
+    Alert.alert('Delete Attendance', 'Are you sure you want to delete this attendance record?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        await supabase.from('attendance').delete().eq('id', id);
-        fetchAttendance();
-      }},
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          await supabase.from('attendance').delete().eq('id', id);
+          fetchAttendance();
+        },
+      },
+    ]);
+  };
+
+  // Event Count Handlers
+  const handleOpenCountModal = () => {
+    setCountForm({
+      event_id: '',
+      attendance_date: new Date().toISOString().slice(0, 10),
+      total_count: 0,
+      members_count: 0,
+      visitors_count: 0,
+      adults_count: 0,
+      children_count: 0,
+      notes: ''
+    });
+    setEditingCountId(null);
+    setCountError('');
+    setCountSuccess(false);
+    setCountModalVisible(true);
+  };
+
+  const handleCountSubmit = async () => {
+    setCountError('');
+    setCountSuccess(false);
+    if (!countForm.event_id) {
+      setCountError('Please select an event.');
+      return;
+    }
+    setCountSubmitting(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const attendanceData = {
+        ...countForm,
+        recorded_by: userData.user?.id,
+      };
+
+      let error;
+      if (editingCountId) {
+        ({ error } = await supabase
+          .from('event_attendance_counts')
+          .update(attendanceData)
+          .eq('id', editingCountId));
+      } else {
+        ({ error } = await supabase
+          .from('event_attendance_counts')
+          .insert([attendanceData]));
+      }
+
+      if (error) throw error;
+
+      setCountSuccess(true);
+      setCountModalVisible(false);
+      fetchAttendanceCounts();
+      setTimeout(() => setCountSuccess(false), 2000);
+    } catch (error) {
+      setCountError('Failed to save attendance count.');
+    } finally {
+      setCountSubmitting(false);
+    }
+  };
+
+  const handleEditCount = (record: any) => {
+    setCountForm({
+      event_id: record.event_id,
+      attendance_date: record.attendance_date,
+      total_count: record.total_count,
+      members_count: record.members_count,
+      visitors_count: record.visitors_count,
+      adults_count: record.adults_count,
+      children_count: record.children_count,
+      notes: record.notes || ''
+    });
+    setEditingCountId(record.id);
+    setCountError('');
+    setCountSuccess(false);
+    setCountModalVisible(true);
+  };
+
+  const handleDeleteCount = (id: string) => {
+    Alert.alert('Delete Count', 'Are you sure you want to delete this attendance count?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          await supabase.from('event_attendance_counts').delete().eq('id', id);
+          fetchAttendanceCounts();
+        },
+      },
     ]);
   };
 
@@ -333,45 +473,126 @@ export default function AttendanceScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Button title="Logout" onPress={handleLogout} />
-      <Text style={styles.title}>Attendance Records</Text>
+      <Text style={styles.title}>Attendance</Text>
+      
+      {/* Tab Switcher */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'individual' && styles.activeTab]} 
+          onPress={() => setActiveTab('individual')}
+        >
+          <Text style={[styles.tabText, activeTab === 'individual' && styles.activeTabText]}>Individual</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'count' && styles.activeTab]} 
+          onPress={() => setActiveTab('count')}
+        >
+          <Text style={[styles.tabText, activeTab === 'count' && styles.activeTabText]}>Event Count</Text>
+        </TouchableOpacity>
+      </View>
       {success && (
         <View style={styles.toastSuccess}><Text style={styles.toastText}>Attendance recorded!</Text></View>
       )}
-      {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" />
-      ) : (
-        <FlatList
-          data={attendance}
-          keyExtractor={item => item.id}
-          refreshing={loading}
-          onRefresh={fetchAttendance}
-          ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 32 }}>No attendance records found.</Text>}
-          renderItem={({ item }) => (
-            <View style={styles.item}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
-                <Ionicons name="person" size={28} color="#007AFF" style={{ marginBottom: 8 }} />
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  <TouchableOpacity onPress={() => handleOpenEditModal(item)}>
-                    <Ionicons name="pencil" size={22} color="#007AFF" />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleDeleteAttendance(item.id)}>
-                    <Ionicons name="trash" size={22} color="#FF3B30" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-              <Text style={styles.member}>{getMemberName(item)}</Text>
-              <Text>Date: {item.attendance_date}</Text>
-              <Text>Event: {item.events ? item.events.title : item.event_id}</Text>
-              <Text>Present: {item.present ? 'Yes' : 'No'}</Text>
-              {item.notes ? <Text>Notes: {item.notes}</Text> : null}
-            </View>
-          )}
-        />
+      {countSuccess && (
+        <View style={styles.toastSuccess}><Text style={styles.toastText}>Count recorded!</Text></View>
       )}
-      {/* Floating Action Button for Record Attendance */}
-      <TouchableOpacity style={[styles.fab, { bottom: insets.bottom + 32 }]} onPress={handleOpenModal}>
-        <Ionicons name="add" size={32} color="#fff" />
-      </TouchableOpacity>
+      
+      {/* Individual Attendance View */}
+      {activeTab === 'individual' && (
+        <>
+          {loading ? (
+            <ActivityIndicator size="large" color="#007AFF" />
+          ) : (
+            <FlatList
+              data={attendance}
+              keyExtractor={item => item.id}
+              refreshing={loading}
+              onRefresh={fetchAttendance}
+              ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 32 }}>No attendance records found.</Text>}
+              renderItem={({ item }) => (
+                <View style={styles.item}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
+                    <Ionicons name="person" size={28} color="#007AFF" style={{ marginBottom: 8 }} />
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <TouchableOpacity onPress={() => handleOpenEditModal(item)}>
+                        <Ionicons name="pencil" size={22} color="#007AFF" />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => handleDeleteAttendance(item.id)}>
+                        <Ionicons name="trash" size={22} color="#FF3B30" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  <Text style={styles.member}>{getMemberName(item)}</Text>
+                  <Text>Date: {item.attendance_date}</Text>
+                  <Text>Event: {item.events ? item.events.title : item.event_id}</Text>
+                  <Text>Present: {item.present ? 'Yes' : 'No'}</Text>
+                  {item.notes ? <Text>Notes: {item.notes}</Text> : null}
+                </View>
+              )}
+            />
+          )}
+        </>
+      )}
+      
+      {/* Event Count View */}
+      {activeTab === 'count' && (
+        <>
+          {loading ? (
+            <ActivityIndicator size="large" color="#007AFF" />
+          ) : (
+            <FlatList
+              data={attendanceCounts}
+              keyExtractor={item => item.id}
+              refreshing={loading}
+              onRefresh={fetchAttendanceCounts}
+              ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 32 }}>No event counts recorded.</Text>}
+              renderItem={({ item }) => (
+                <View style={styles.item}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
+                    <Ionicons name="bar-chart" size={28} color="#007AFF" style={{ marginBottom: 8 }} />
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <TouchableOpacity onPress={() => handleEditCount(item)}>
+                        <Ionicons name="pencil" size={22} color="#007AFF" />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => handleDeleteCount(item.id)}>
+                        <Ionicons name="trash" size={22} color="#FF3B30" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  <Text style={styles.member}>{item.events?.title || 'Unknown Event'}</Text>
+                  <Text>Date: {item.attendance_date}</Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
+                    <Text style={{ fontWeight: 'bold', color: '#007AFF' }}>Total: {item.total_count}</Text>
+                    <Text>Members: {item.members_count}</Text>
+                    <Text>Visitors: {item.visitors_count}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
+                    <Text>Adults: {item.adults_count}</Text>
+                    <Text>Children: {item.children_count}</Text>
+                  </View>
+                  {item.notes ? <Text style={{ marginTop: 4, fontStyle: 'italic' }}>Notes: {item.notes}</Text> : null}
+                </View>
+              )}
+            />
+          )}
+        </>
+      )}
+      {/* Floating Action Buttons */}
+      {activeTab === 'individual' && (
+        <>
+          <TouchableOpacity style={[styles.fab, { bottom: insets.bottom + 32 }]} onPress={handleOpenModal}>
+            <Ionicons name="add" size={32} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.fab, { bottom: insets.bottom + 100 }]} onPress={handleOpenMassModal}>
+            <Ionicons name="people" size={28} color="#fff" />
+          </TouchableOpacity>
+        </>
+      )}
+      {activeTab === 'count' && (
+        <TouchableOpacity style={[styles.fab, { bottom: insets.bottom + 32 }]} onPress={handleOpenCountModal}>
+          <Ionicons name="stats-chart" size={32} color="#fff" />
+        </TouchableOpacity>
+      )}
       {/* Modal for recording attendance */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
@@ -555,6 +776,109 @@ export default function AttendanceScreen() {
           </View>
         </View>
       </Modal>
+      
+      {/* Event Count Modal */}
+      <Modal visible={countModalVisible} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxHeight: '90%' }]}>
+            <Text style={styles.modalTitle}>{editingCountId ? 'Edit' : 'Record'} Event Count</Text>
+            {countError ? <Text style={styles.errorText}>{countError}</Text> : null}
+            <Text style={styles.label}>Event</Text>
+            <ScrollView horizontal style={{ marginBottom: 8 }}>
+              {events.map(e => (
+                <TouchableOpacity
+                  key={e.id}
+                  style={[styles.pickerItem, countForm.event_id === e.id && styles.pickerItemSelected]}
+                  onPress={() => setCountForm(f => ({ ...f, event_id: e.id }))}
+                >
+                  <Text style={countForm.event_id === e.id ? { color: '#fff' } : {}}>{e.title}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <Text style={styles.label}>Date</Text>
+            <TouchableOpacity onPress={() => setCountShowDatePicker(true)} style={styles.dateInput}>
+              <Text>{countForm.attendance_date || 'Select date'}</Text>
+            </TouchableOpacity>
+            {countShowDatePicker && (
+              <DateTimePicker
+                value={countForm.attendance_date ? new Date(countForm.attendance_date) : new Date()}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={(_, date) => {
+                  setCountShowDatePicker(false);
+                  if (date) setCountForm(f => ({ ...f, attendance_date: date.toISOString().slice(0, 10) }));
+                }}
+              />
+            )}
+            <Text style={styles.label}>Attendance Counts</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+              <View style={{ flex: 1, marginRight: 4 }}>
+                <Text style={styles.label}>Members</Text>
+                <TextInput
+                  style={styles.input}
+                  value={countForm.members_count.toString()}
+                  onChangeText={v => setCountForm(f => ({ ...f, members_count: parseInt(v) || 0 }))}
+                  keyboardType="numeric"
+                  placeholder="0"
+                />
+              </View>
+              <View style={{ flex: 1, marginLeft: 4 }}>
+                <Text style={styles.label}>Visitors</Text>
+                <TextInput
+                  style={styles.input}
+                  value={countForm.visitors_count.toString()}
+                  onChangeText={v => setCountForm(f => ({ ...f, visitors_count: parseInt(v) || 0 }))}
+                  keyboardType="numeric"
+                  placeholder="0"
+                />
+              </View>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+              <View style={{ flex: 1, marginRight: 4 }}>
+                <Text style={styles.label}>Adults</Text>
+                <TextInput
+                  style={styles.input}
+                  value={countForm.adults_count.toString()}
+                  onChangeText={v => setCountForm(f => ({ ...f, adults_count: parseInt(v) || 0 }))}
+                  keyboardType="numeric"
+                  placeholder="0"
+                />
+              </View>
+              <View style={{ flex: 1, marginLeft: 4 }}>
+                <Text style={styles.label}>Children</Text>
+                <TextInput
+                  style={styles.input}
+                  value={countForm.children_count.toString()}
+                  onChangeText={v => setCountForm(f => ({ ...f, children_count: parseInt(v) || 0 }))}
+                  keyboardType="numeric"
+                  placeholder="0"
+                />
+              </View>
+            </View>
+            <Text style={styles.label}>Total Count</Text>
+            <TextInput
+              style={[styles.input, { fontWeight: 'bold', fontSize: 16 }]}
+              value={countForm.total_count.toString()}
+              onChangeText={v => setCountForm(f => ({ ...f, total_count: parseInt(v) || 0 }))}
+              keyboardType="numeric"
+              placeholder="0"
+            />
+            <Text style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Auto-calculated: {countForm.members_count + countForm.visitors_count}</Text>
+            <Text style={styles.label}>Notes (Optional)</Text>
+            <TextInput
+              style={[styles.input, { height: 60 }]}
+              value={countForm.notes}
+              onChangeText={v => setCountForm(f => ({ ...f, notes: v }))}
+              placeholder="Any additional notes..."
+              multiline
+            />
+            <View style={styles.modalActions}>
+              <Button title="Cancel" onPress={() => setCountModalVisible(false)} />
+              <Button title={countSubmitting ? 'Saving...' : (editingCountId ? 'Update' : 'Record')} onPress={handleCountSubmit} disabled={countSubmitting || !countForm.event_id} />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -688,4 +1012,29 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
-}); 
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    marginBottom: 16,
+    padding: 4,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  activeTab: {
+    backgroundColor: '#007AFF',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+  },
+  activeTabText: {
+    color: '#fff',
+  },
+});

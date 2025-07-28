@@ -5,14 +5,16 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { AppLayout } from "./components/layout/AppLayout";
-import Dashboard from "./components/dashboard/Dashboard";
+import ModernDashboard from './components/dashboard/ModernDashboard';
 import { MembersList } from "./components/members/MembersList";
-import { VisitorsList } from "./components/visitors/VisitorsList";
+import VisitorsPage from "./pages/VisitorsPage";
 import { DonationsList } from "./components/donations/DonationsList";
 import { EventsList } from "./components/events/EventsList";
 import { AttendanceList } from "./components/attendance/AttendanceList";
+import { EventAttendanceCount } from "./components/attendance/EventAttendanceCount";
 import { CommunicationsList } from "./components/communications/CommunicationsList";
 import { ReportsList } from "./components/reports/ReportsList";
+import TestReportsPage from "./pages/TestReportsPage";
 import { SettingsPage } from "./components/settings/SettingsPage";
 import { AuthProvider } from "./components/auth/AuthContext";
 import { ResponsiveProvider } from '@/contexts/ResponsiveContext';
@@ -40,10 +42,14 @@ import FinancialSummaryReportPage from './pages/FinancialSummaryReportPage';
 import EventAnalyticsReportPage from './pages/EventAnalyticsReportPage';
 import { supabase } from "@/integrations/supabase/client";
 import React from "react";
+import { AutoMigration } from "./components/AutoMigration";
 
 import SermonLibraryPage from "./pages/SermonLibraryPage";
 import PrayerRequestsPage from "./pages/PrayerRequestsPage";
 import SmallGroupsPage from "./pages/SmallGroupsPage";
+import CommunicationCenter from "./pages/CommunicationCenter";
+import SimpleAnnouncementPage from "./pages/SimpleAnnouncementPage";
+import TestAnnouncementPage from "./pages/TestAnnouncementPage";
 
 // TestComponent definition (fixed)
 const TestComponent = () => {
@@ -109,6 +115,7 @@ const App = () => {
           <ResponsiveProvider>
             <ThemeProvider>
               <TooltipProvider>
+                <AutoMigration>
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
@@ -138,7 +145,7 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <AppLayout>
-                      <Dashboard />
+                      <ModernDashboard />
                     </AppLayout>
                   </ProtectedRoute>
                 } 
@@ -157,9 +164,7 @@ const App = () => {
                 path="/visitors" 
                 element={
                   <ProtectedRoute requiredRole="admin">
-                    <AppLayout>
-                      <VisitorsList />
-                    </AppLayout>
+                    <VisitorsPage />
                   </ProtectedRoute>
                 } 
               />
@@ -194,11 +199,51 @@ const App = () => {
                 } 
               />
               <Route 
+                path="/attendance/count" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AppLayout>
+                      <EventAttendanceCount />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/events" 
                 element={
                   <ProtectedRoute requiredRole="admin">
                     <AppLayout>
                       <EventsList />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/communication" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AppLayout>
+                      <CommunicationCenter />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/announcements" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AppLayout>
+                      <SimpleAnnouncementPage />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/test-announcements" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AppLayout>
+                      <TestAnnouncementPage />
                     </AppLayout>
                   </ProtectedRoute>
                 } 
@@ -221,6 +266,12 @@ const App = () => {
                       <ReportsList />
                     </AppLayout>
                   </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/test-reports" 
+                element={
+                  <TestReportsPage />
                 } 
               />
               <Route 
@@ -329,6 +380,7 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
               </Routes>
                 </BrowserRouter>
+                </AutoMigration>
               </TooltipProvider>
             </ThemeProvider>
           </ResponsiveProvider>

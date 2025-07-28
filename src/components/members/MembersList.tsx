@@ -268,8 +268,21 @@ export function MembersList() {
           return;
         }
       }
-      // Add membership_date if required
-      const { error } = await supabase.from("members").insert([{ ...values, profile_image_url, membership_date: new Date().toISOString() }]);
+      // Prepare data and ensure unique member_id
+      const insertData: any = {
+        ...values,
+        profile_image_url,
+        membership_date: new Date().toISOString(),
+      };
+      // Auto-generate a unique tithe_number if none provided
+      if (!insertData.tithe_number || insertData.tithe_number.trim() === "") {
+        insertData.tithe_number = `T${uuidv4().slice(0, 8).toUpperCase()}`;
+      }
+      // If member_id is blank, generate a unique one (8-char UUID segment)
+      if (!insertData.member_id || insertData.member_id.trim() === "") {
+        insertData.member_id = uuidv4().toUpperCase().slice(0, 8);
+      }
+      const { error } = await supabase.from("members").insert([insertData]);
       if (error) {
         console.error(error);
         toast({ title: "Error", description: error.message, variant: "destructive" });

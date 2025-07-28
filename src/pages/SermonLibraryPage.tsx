@@ -99,7 +99,7 @@ const sampleSermons = [
 export default function SermonLibraryPage() {
   const [sermons, setSermons] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [usingFallbackData, setUsingFallbackData] = useState(false);
   const { toast } = useToast();
@@ -178,7 +178,7 @@ export default function SermonLibraryPage() {
     const matchesSearch = sermon.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          sermon.preacher.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          sermon.scripture_reference?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !categoryFilter || sermon.category === categoryFilter;
+    const matchesCategory = !categoryFilter || categoryFilter === "all" || sermon.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
@@ -236,7 +236,7 @@ export default function SermonLibraryPage() {
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               {categories
                 .filter(category => category && typeof category === 'string' && category.trim() !== '')
                 .map(category => (

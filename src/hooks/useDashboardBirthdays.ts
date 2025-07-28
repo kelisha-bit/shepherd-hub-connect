@@ -21,7 +21,7 @@ export function useDashboardBirthdays() {
       try {
         const { data, error } = await supabase
           .from('members')
-          .select('first_name, last_name, date_of_birth');
+          .select('first_name, last_name, date_of_birth, profile_image_url');
         if (error) throw error;
         const now = new Date();
         const in30 = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -30,11 +30,12 @@ export function useDashboardBirthdays() {
           .map((m: any) => ({
             name: `${m.first_name} ${m.last_name}`,
             date_of_birth: m.date_of_birth,
+            profile_image_url: m.profile_image_url,
             nextBirthday: getNextBirthday(m.date_of_birth)
           }))
           .filter(m => m.nextBirthday >= now && m.nextBirthday <= in30)
           .sort((a, b) => a.nextBirthday.getTime() - b.nextBirthday.getTime())
-          .map(m => ({ name: m.name, date_of_birth: m.date_of_birth }));
+          .map(m => ({ name: m.name, date_of_birth: m.date_of_birth, profile_image_url: m.profile_image_url }));
         setBirthdays(upcoming);
       } catch (e: any) {
         setError(e.message || 'Failed to fetch birthdays');
