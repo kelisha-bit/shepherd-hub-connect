@@ -1,8 +1,118 @@
-# Welcome to your Lovable project
+# ChurchCMS - Church Management System
 
-## Project info
+A comprehensive church management system built with React, TypeScript, and Supabase.
 
-**URL**: https://lovable.dev/projects/f0332881-547d-45ff-b381-2ad6e6cd0af5
+## Features
+
+### 🏠 Dashboard
+- Real-time statistics and analytics
+- Upcoming events and birthdays
+- Member growth tracking
+- Financial summaries
+
+### 👥 Member Management
+- Complete member profiles with photos
+- Membership status tracking
+- Contact information management
+- Role and ministry assignments
+
+### 💰 Financial Management
+- Donation tracking and receipts
+- Income and expense management
+- Financial goal setting
+- Comprehensive reporting
+
+### 📅 Event Management
+- Event creation and scheduling
+- Attendance tracking
+- Event analytics and reporting
+- RSVP management
+
+### 💬 Communication
+- Bulk messaging capabilities
+- Announcement system
+- Email and SMS notifications
+- Communication history
+
+### 📊 Reporting
+- Member growth reports
+- Financial summaries
+- Event analytics
+- Custom report generation
+
+### 🙏 Ministry Features
+- Prayer request management
+- Small group organization
+- Sermon library
+- Volunteer coordination
+
+## Technology Stack
+
+- **Frontend**: React 18, TypeScript, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL, Auth, Storage)
+- **UI Components**: Radix UI, shadcn/ui
+- **Charts**: Recharts
+- **Forms**: React Hook Form, Zod validation
+- **Routing**: React Router
+- **State Management**: Zustand, TanStack Query
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <YOUR_GIT_URL>
+cd church-cms
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up Supabase:
+   - The project is already configured with Supabase
+   - Database migrations run automatically
+
+4. Start the development server:
+```bash
+npm run dev
+```
+
+## Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+│   ├── auth/           # Authentication components
+│   ├── dashboard/      # Dashboard components
+│   ├── events/         # Event management
+│   ├── finance/        # Financial components
+│   ├── members/        # Member management
+│   └── ui/             # Base UI components
+├── hooks/              # Custom React hooks
+├── integrations/       # Third-party integrations
+├── lib/                # Utility functions
+├── pages/              # Page components
+└── contexts/           # React contexts
+```
+
+## Database Schema
+
+The application uses Supabase with the following main tables:
+- `members` - Member information and profiles
+- `events` - Church events and activities
+- `donations` - Financial contributions
+- `attendance` - Event attendance tracking
+- `communications` - Message history
+- `prayer_requests` - Prayer request management
+- `small_groups` - Small group organization
 
 ## How can I edit this code?
 
@@ -36,58 +146,52 @@ npm i
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Deployment
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Production Deployment
 
-**Use GitHub Codespaces**
+1. Build the application:
+```bash
+npm run build
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+2. Deploy using Lovable:
+   - Open [Lovable](https://lovable.dev/projects/f0332881-547d-45ff-b381-2ad6e6cd0af5)
+   - Click on Share -> Publish
 
-## What technologies are used for this project?
+3. Custom Domain:
+   - Navigate to Project > Settings > Domains 
+   - Click Connect Domain
+   - [Read more about custom domains](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
 
-This project is built with:
+## Contributing
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## Responsive Components
+## Security Features
 
-This project includes a comprehensive set of responsive components that work across both web and mobile platforms:
+- Authentication with Supabase Auth
+- Role-based access control (Admin, Member roles)
+- Row Level Security (RLS) enabled on all tables
+- Secure file uploads to Supabase Storage
+- Input validation on all forms
 
-### Web Application
+## Performance Optimizations
 
-- **Responsive Context**: Global responsive state provider
-- **Responsive Hooks**: `useResponsive`, `useBreakpoint`, `useBreakpointValue`, etc.
-- **Responsive Components**: `ResponsiveContainer`, `ResponsiveGrid`, `ResponsiveVisibility`, etc.
+- Code splitting with React.lazy()
+- Image optimization
+- Efficient database queries with pagination
+- Caching with TanStack Query
+- Responsive design for all screen sizes
 
-To see these components in action, visit the `/responsive-demo` route in the web application.
+## Support
 
-### Mobile Application
+For support, please contact your church's technical team or create an issue in this repository.
 
-The mobile app includes matching responsive components that provide a consistent experience across platforms.
+---
 
-For detailed documentation, see:
-- Web: `src/docs/responsive-components.md`
-- Mobile: `mobile-app/docs/responsive-components.md`
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/f0332881-547d-45ff-b381-2ad6e6cd0af5) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Built with ❤️ for church communities worldwide.

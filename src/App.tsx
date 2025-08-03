@@ -43,6 +43,8 @@ import EventAnalyticsReportPage from './pages/EventAnalyticsReportPage';
 import { supabase } from "@/integrations/supabase/client";
 import React from "react";
 import { AutoMigration } from "./components/AutoMigration";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
+import { SEOHead } from "./components/common/SEOHead";
 
 import SermonLibraryPage from "./pages/SermonLibraryPage";
 import PrayerRequestsPage from "./pages/PrayerRequestsPage";
@@ -50,6 +52,8 @@ import SmallGroupsPage from "./pages/SmallGroupsPage";
 import CommunicationCenter from "./pages/CommunicationCenter";
 import SimpleAnnouncementPage from "./pages/SimpleAnnouncementPage";
 import TestAnnouncementPage from "./pages/TestAnnouncementPage";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 // TestComponent definition (fixed)
 const TestComponent = () => {
@@ -109,16 +113,18 @@ const App = () => {
   console.log('App: Rendering App component');
   
   return (
-    <QueryClientProvider client={queryClient}>
-      <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
-        <AuthProvider>
-          <ResponsiveProvider>
-            <ThemeProvider>
-              <TooltipProvider>
-                <AutoMigration>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>
+            <ResponsiveProvider>
+              <ThemeProvider>
+                <TooltipProvider>
+                  <SEOHead />
+                  <AutoMigration>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
               <Routes>
               {/* Test route to check if routing works */}
                 <Route path="/test" element={<TestComponent />} />
@@ -376,6 +382,10 @@ const App = () => {
                 <Route path="prayer-requests" element={<PrayerRequestsPage />} />
                 <Route path="small-groups" element={<SmallGroupsPage />} />
               </Route>
+              {/* Legal Pages */}
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
               </Routes>
@@ -387,6 +397,7 @@ const App = () => {
         </AuthProvider>
       </NextThemesProvider>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

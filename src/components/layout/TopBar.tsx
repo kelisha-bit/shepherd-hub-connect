@@ -1,4 +1,4 @@
-import { Bell, Search, User, LogOut } from "lucide-react";
+import { Search, User, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/components/auth/AuthContext";
+import { NotificationSystem } from "@/components/common/NotificationSystem";
 
 export function TopBar() {
   const { user, signOut } = useAuth();
@@ -44,12 +45,7 @@ export function TopBar() {
 
       <div className="flex items-center gap-2 sm:gap-4">
         <ThemeToggle />
-        <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex">
-          <Bell className="h-4 w-4" />
-          <span className="absolute -top-1 -right-1 h-3 w-3 bg-destructive rounded-full text-xs flex items-center justify-center text-destructive-foreground">
-            3
-          </span>
-        </Button>
+        <NotificationSystem />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
